@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Mind – Attendance History & Reports</title>
+  <link rel="stylesheet" href="/ui/shared.css">
+  <style>
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 840px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 24px 28px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Three-dot dropdown menus */
+    .btn-dots {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--text-main);
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      user-select: none;
+    }
+    .btn-dots:hover, .btn-dots:focus {
+      background: var(--surface-2);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .dropdown-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 170px;
+      background: #fff;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 3px;
+      z-index: 1000;
+      text-align: left;
+      white-space: nowrap;
+      animation: fadeInDown 0.15s ease-out;
+    }
+    .dropdown-menu.show {
+      display: flex;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s ease;
+    }
+    .dropdown-item:hover {
+      background: var(--surface-2);
+      color: var(--primary);
+    }
+    .dropdown-item.danger {
+      color: var(--danger);
+    }
+    .dropdown-item.danger:hover {
+      background: var(--danger-light);
+      color: var(--danger-dark);
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🎓</div>
+      <div class="brand-text">
+        <h1>Campus Mind</h1>
+        <p>Smart Attendance System</p>
+      </div>
+    </div>
+
+    <div class="user-profile">
+      <div class="avatar" id="avatar-initials">FA</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-faculty-name">Faculty</div>
+        <div class="user-role">Faculty</div>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <a href="/faculty?view=dashboard" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/faculty?view=create" class="nav-item">
+        <span class="nav-icon">➕</span>
+        <span>Create Session</span>
+      </a>
+      <a href="/faculty?view=live" class="nav-item">
+        <span class="nav-icon">📡</span>
+        <span>Active Session</span>
+      </a>
+      <a href="/history" class="nav-item active">
+        <span class="nav-icon">🕒</span>
+        <span>History</span>
+      </a>
+      <a href="/history" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span>Reports</span>
+      </a>
+      <a href="/faculty?view=settings" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="logout()">
+        <span class="nav-icon">🚪</span>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- ── Main Content Area ── -->
+  <div class="main-wrapper">
+    <header class="top-nav">
+      <div class="header-brand">
+        <button class="hamburger-btn" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <span>🎓 Campus Mind &nbsp;<small style="opacity:0.75; font-size: 0.85rem; font-weight:500;">Smart Attendance System</small></span>
+      </div>
+      <div class="header-actions">
+        <div class="clock-display" id="clock-display">📅 Loading...</div>
+      </div>
+    </header>
+
+    <main class="content-body">
+      <div class="master-card">
+        <div class="master-card-header">
+          <div>
+            <h2 class="master-title">Attendance History & Reports</h2>
+            <p class="master-subtitle">Review previous class sessions, attendance records, and export reports in CSV & JSON.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="search-ref-wrap">
+              <span class="search-ref-icon">🔍</span>
+              <input type="text" id="search-history" placeholder="Search by subject..." oninput="filterHistory()">
+            </div>
+            <!-- Header Three-Dot Action Menu -->
+            <div class="dropdown-wrap">
+              <button class="btn-dots" id="btn-header-menu" style="width: 38px; height: 38px; font-size: 1.35rem;" onclick="toggleHeaderMenu(event)" title="History actions" aria-label="History actions">
+                ⋮
+              </button>
+              <div class="dropdown-menu" id="header-dropdown-menu">
+                <button class="dropdown-item danger" onclick="openDeleteAllModal(event)">
+                  <span>🗑️</span>
+                  <span>Delete All History</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto; min-height: 320px; padding-bottom: 60px;">
+          <table class="table-ref">
+            <thead>
+              <tr>
+                <th style="width: 60px;">ID</th>
+                <th>Subject</th>
+                <th>Faculty</th>
+                <th>Date & Time</th>
+                <th>Duration</th>
+                <th>Total</th>
+                <th>Present</th>
+                <th>Partial</th>
+                <th>Dropped</th>
+                <th style="text-align: right;">Download Reports</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <tr>
+                <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                  Loading historical sessions from database...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Attendee Breakdown -->
+<div class="modal-backdrop" id="details-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);" id="modal-title">Session Attendee Breakdown</h3>
+      <button class="btn-reset" style="padding: 6px 14px; font-size: 0.8rem;" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Injected table -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Edit Session Details -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal-box" style="max-width: 480px;">
+    <div class="modal-header">
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);" id="edit-modal-title">Edit Session Details</h3>
+      <button class="btn-reset" style="padding: 6px 14px; font-size: 0.8rem;" onclick="closeEditModal()">✕ Close</button>
+    </div>
+    <form id="edit-session-form" onsubmit="submitEditSession(event)">
+      <div class="modal-body" style="padding: 22px 28px;">
+        <input type="hidden" id="edit-session-id" />
+        
+        <div style="margin-bottom: 18px;">
+          <label class="label-ref" style="display:block; margin-bottom: 6px; font-weight:700; font-size:0.88rem;">Subject Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="edit-subject" class="input-ref" required placeholder="e.g. CS101 - Operating Systems" style="padding-left: 14px;" />
+        </div>
+
+        <div style="margin-bottom: 18px;">
+          <label class="label-ref" style="display:block; margin-bottom: 6px; font-weight:700; font-size:0.88rem;">Faculty Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="edit-faculty-name" class="input-ref" required placeholder="e.g. Faculty Member" style="padding-left: 14px;" />
+        </div>
+
+        <div style="margin-bottom: 8px;">
+          <label class="label-ref" style="display:block; margin-bottom: 6px; font-weight:700; font-size:0.88rem;">Duration (Minutes) <span style="color:var(--danger)">*</span></label>
+          <input type="number" id="edit-duration" class="input-ref" min="1" max="600" required style="padding-left: 14px;" />
+        </div>
+      </div>
+      <div style="padding: 16px 28px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--surface-2);">
+        <button type="button" class="btn-reset" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn-start" id="btn-save-edit">💾 Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Delete Session Confirmation -->
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal-box" style="max-width: 440px; text-align: center;">
+    <div style="padding: 30px 24px 20px 24px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--danger-light); color: var(--danger); font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        🗑️
+      </div>
+      <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Delete Session?</h3>
+      <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;" id="delete-modal-msg">
+        Are you sure you want to delete this session? All student attendance records and logs will be permanently deleted.
+      </p>
+      <input type="hidden" id="delete-session-id" />
+    </div>
+    <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 12px; background: var(--surface-2);">
+      <button type="button" class="btn-reset" onclick="closeDeleteModal()">Cancel</button>
+      <button type="button" class="btn-start" style="background: var(--danger); border-color: var(--danger);" id="btn-confirm-delete" onclick="submitDeleteSession()">
+        Yes, Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Delete All History Strong Confirmation -->
+<div class="modal-backdrop" id="delete-all-modal">
+  <div class="modal-box" style="max-width: 480px; text-align: left;">
+    <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 18px 24px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--danger-light); color: var(--danger); font-size: 1.4rem; display: flex; align-items: center; justify-content: center;">
+          ⚠️
+        </div>
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">Delete All History</h3>
+          <p style="font-size: 0.8rem; color: var(--danger); font-weight: 600;">Irreversible Action</p>
+        </div>
+      </div>
+      <button class="btn-reset" style="padding: 6px 14px; font-size: 0.8rem;" onclick="closeDeleteAllModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding: 20px 24px;">
+      <p style="font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-bottom: 14px;">
+        This action will permanently delete <strong>all past attendance sessions</strong>, student attendance records, device connection logs, and generated report files from the database.
+      </p>
+      <div style="background: var(--danger-light); border: 1px solid #FCA5A5; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px; color: #991B1B; font-size: 0.85rem;">
+        ⚠️ This cannot be undone. To confirm, please type <strong style="font-family:'JetBrains Mono', monospace; font-size: 0.9rem; letter-spacing: 1px;">DELETE ALL</strong> in the box below:
+      </div>
+      <input type="text" id="delete-all-confirm-input" class="input-ref" placeholder="Type DELETE ALL to confirm" oninput="checkDeleteAllInput()" style="padding-left: 14px; font-family:'JetBrains Mono', monospace; font-weight: 700;" />
+    </div>
+    <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: var(--surface-2);">
+      <button type="button" class="btn-reset" onclick="closeDeleteAllModal()">Cancel</button>
+      <button type="button" class="btn-start" id="btn-confirm-delete-all" disabled style="background: var(--danger); border-color: var(--danger); opacity: 0.45; cursor: not-allowed;" onclick="submitDeleteAllHistory()">
+        🗑️ Delete All History
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-box" id="toast-box"></div>
+
+<script>
+  let allSessions = [];
+
+  function toast(msg, isError = false) {
+    const box = document.getElementById('toast-box');
+    const t = document.createElement('div');
+    t.className = 'toast ' + (isError ? 'error' : 'success');
+    t.innerText = msg;
+    box.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-backdrop').classList.toggle('open');
+  }
+
+  function refreshClock() {
+    const d = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dayName = days[d.getDay()];
+    const dateNum = d.getDate();
+    const monthName = months[d.getMonth()];
+    const year = d.getFullYear();
+    
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const timeStr = `${hours}:${minutes} ${ampm}`;
+
+    document.getElementById('clock-display').innerHTML = `📅 ${dayName}, ${dateNum} ${monthName} ${year} &nbsp; ${timeStr}`;
+  }
+  setInterval(refreshClock, 1000);
+  refreshClock();
+
+  function getAuthHeaders() {
+    const token = localStorage.getItem('faculty_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/auth/me', { headers: getAuthHeaders(), credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const facultyName = data.name || data.faculty_id || 'Faculty';
+        document.getElementById('sidebar-faculty-name').innerText = facultyName;
+        localStorage.setItem('faculty_name', facultyName);
+        localStorage.setItem('faculty_id', data.faculty_id);
+        const initials = facultyName.split(' ').filter(n => n.length > 0).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('avatar-initials').innerText = initials || 'FA';
+      }
+    } catch {}
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch('/api/sessions', { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Status ' + res.status);
+      allSessions = await res.json();
+      renderHistory(allSessions);
+    } catch (e) {
+      toast('Could not load session history: ' + e.message, true);
+    }
+  }
+
+  function renderHistory(sessions) {
+    const tbody = document.getElementById('history-table-body');
+    if (!sessions || sessions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 40px;">No historical sessions recorded yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = sessions.map(s => {
+      const d = new Date(s.start_time * 1000);
+      const dtStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      return `
+        <tr>
+          <td><strong>#${s.session_id}</strong></td>
+          <td><strong style="color: var(--primary);">${s.subject}</strong></td>
+          <td><span style="font-size: 0.85rem; color: var(--text-muted);">${s.faculty_name || s.faculty_id}</span></td>
+          <td><span style="font-size: 0.85rem;">${dtStr}</span></td>
+          <td>${s.session_duration_minutes} min</td>
+          <td><strong>${s.total_students || s.total_joined || 0}</strong></td>
+          <td><span class="pill-status active" style="font-size:0.75rem;">✓ ${s.present_count || 0}</span></td>
+          <td><span class="pill-status paused" style="font-size:0.75rem;">⏸ ${s.partial_count || 0}</span></td>
+          <td><span class="pill-status disconnected" style="font-size:0.75rem;">✗ ${s.dropped_count || 0}</span></td>
+          <td style="text-align: right;">
+            <div style="display: inline-flex; align-items: center; gap: 6px;">
+              <a href="/api/sessions/${s.session_id}/export?format=csv" class="btn-reset" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none;" title="Download CSV">
+                📊 CSV
+              </a>
+              <a href="/api/sessions/${s.session_id}/export?format=json" class="btn-reset" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none;" title="Download JSON">
+                { } JSON
+              </a>
+              <button class="btn-start" style="padding: 4px 12px; font-size: 0.75rem;" onclick="viewDetails(${s.session_id})">
+                👁 View
+              </button>
+              <div class="dropdown-wrap">
+                <button class="btn-dots" onclick="toggleRowMenu(event, ${s.session_id})" title="Actions" aria-label="Session actions">
+                  ⋮
+                </button>
+                <div class="dropdown-menu" id="dropdown-${s.session_id}">
+                  <button class="dropdown-item" onclick="openEditModal(${s.session_id})">
+                    <span>✏️</span>
+                    <span>Edit</span>
+                  </button>
+                  <button class="dropdown-item danger" onclick="openDeleteModal(${s.session_id})">
+                    <span>🗑️</span>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function filterHistory() {
+    const q = document.getElementById('search-history').value.toLowerCase().trim();
+    const filtered = allSessions.filter(s => s.subject.toLowerCase().includes(q) || s.faculty_id.toLowerCase().includes(q) || (s.faculty_name && s.faculty_name.toLowerCase().includes(q)));
+    renderHistory(filtered);
+  }
+
+  async function viewDetails(sessionId) {
+    try {
+      const res = await fetch(`/api/session/${sessionId}/live`);
+      const data = await res.json();
+      document.getElementById('modal-title').innerText = `Session #${sessionId} – ${data.subject}`;
+      
+      const students = data.students || [];
+      const mbody = document.getElementById('modal-body');
+      if (students.length === 0) {
+        mbody.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 30px;">No students attended this session.</p>';
+      } else {
+        mbody.innerHTML = `
+          <table class="table-ref" style="width: 100%; border-collapse: collapse;">
+            <tbody>
+              ${students.map(st => {
+                const s = (st.final_status || st.current_status || 'PRESENT').toUpperCase();
+                let pClass = 'present';
+                let dispStatus = 'PRESENT';
+                if (s === 'PARTIAL' || s === 'PAUSED') {
+                  pClass = 'partial';
+                  dispStatus = 'PARTIAL';
+                } else if (s === 'DROPPED' || s === 'DISCONNECTED') {
+                  pClass = 'dropped';
+                  dispStatus = 'DROPPED';
+                } else {
+                  pClass = 'present';
+                  dispStatus = 'PRESENT';
+                }
+
+                const m = Math.floor(st.total_seconds / 60);
+                const sec = st.total_seconds % 60;
+                return `
+                  <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 13px 18px; width: 110px;"><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--primary); font-size:0.92rem;">${st.student_id}</span></td>
+                    <td style="padding: 13px 18px;"><strong style="color:var(--text-main); font-size:0.95rem;">${st.display_name}</strong></td>
+                    <td style="padding: 13px 18px; font-weight:600; color:var(--text-main); font-size:0.92rem;">${m}m ${sec}s</td>
+                    <td style="padding: 13px 18px; width: 120px;"><span class="pill-status ${pClass}">${dispStatus}</span></td>
+                    <td style="padding: 13px 18px; text-align: right; width: 150px;"><span style="font-size:0.85rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">${st.device_ip || '127.0.0.1'}</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+      document.getElementById('details-modal').classList.add('open');
+    } catch(e) {
+      toast('Could not fetch session details', true);
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('details-modal').classList.remove('open');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Close open dropdown menus on outside click
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('.dropdown-wrap')) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    }
+  });
+
+  function toggleHeaderMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('header-dropdown-menu');
+    const wasOpen = menu.classList.contains('show');
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    if (!wasOpen) menu.classList.add('show');
+  }
+
+  function toggleRowMenu(event, sessionId) {
+    event.stopPropagation();
+    const menu = document.getElementById(`dropdown-${sessionId}`);
+    if (!menu) return;
+    const wasOpen = menu.classList.contains('show');
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    if (!wasOpen) menu.classList.add('show');
+  }
+
+  // Edit Modal functions
+  function openEditModal(sessionId) {
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    const sess = allSessions.find(s => s.session_id === sessionId);
+    if (!sess) {
+      toast('Session not found', true);
+      return;
+    }
+    document.getElementById('edit-session-id').value = sess.session_id;
+    document.getElementById('edit-modal-title').innerText = `Edit Session #${sess.session_id}`;
+    document.getElementById('edit-subject').value = sess.subject || '';
+    document.getElementById('edit-faculty-name').value = sess.faculty_name || sess.faculty_id || '';
+    document.getElementById('edit-duration').value = sess.session_duration_minutes || sess.planned_duration || 45;
+    document.getElementById('edit-modal').classList.add('open');
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('open');
+  }
+
+  async function submitEditSession(e) {
+    e.preventDefault();
+    const sessionId = parseInt(document.getElementById('edit-session-id').value, 10);
+    const saveBtn = document.getElementById('btn-save-edit');
+    saveBtn.disabled = true;
+    saveBtn.innerText = 'Saving...';
+
+    const payload = {
+      subject: document.getElementById('edit-subject').value.trim(),
+      faculty_name: document.getElementById('edit-faculty-name').value.trim(),
+      session_duration_minutes: parseInt(document.getElementById('edit-duration').value, 10)
+    };
+
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to update session');
+      toast(data.message || 'Session updated successfully!');
+      closeEditModal();
+      await loadHistory();
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerText = '💾 Save Changes';
+    }
+  }
+
+  // Single Session Delete functions
+  function openDeleteModal(sessionId) {
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    const sess = allSessions.find(s => s.session_id === sessionId);
+    document.getElementById('delete-session-id').value = sessionId;
+    const subj = sess ? escapeHtml(sess.subject) : `#${sessionId}`;
+    document.getElementById('delete-modal-msg').innerHTML = `Are you sure you want to delete <strong>Session #${sessionId} (${subj})</strong>? All student attendance records, logs, and exported reports will be permanently deleted.`;
+    document.getElementById('delete-modal').classList.add('open');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.remove('open');
+  }
+
+  async function submitDeleteSession() {
+    const sessionId = parseInt(document.getElementById('delete-session-id').value, 10);
+    const delBtn = document.getElementById('btn-confirm-delete');
+    delBtn.disabled = true;
+    delBtn.innerText = 'Deleting...';
+
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to delete session');
+      toast(data.message || 'Session deleted successfully!');
+      closeDeleteModal();
+      await loadHistory();
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      delBtn.disabled = false;
+      delBtn.innerText = 'Yes, Delete';
+    }
+  }
+
+  // Delete All History functions
+  function openDeleteAllModal(event) {
+    if (event) event.stopPropagation();
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+    const input = document.getElementById('delete-all-confirm-input');
+    input.value = '';
+    const btn = document.getElementById('btn-confirm-delete-all');
+    btn.disabled = true;
+    btn.style.opacity = '0.45';
+    btn.style.cursor = 'not-allowed';
+    document.getElementById('delete-all-modal').classList.add('open');
+    input.focus();
+  }
+
+  function closeDeleteAllModal() {
+    document.getElementById('delete-all-modal').classList.remove('open');
+  }
+
+  function checkDeleteAllInput() {
+    const val = document.getElementById('delete-all-confirm-input').value.trim().toUpperCase();
+    const btn = document.getElementById('btn-confirm-delete-all');
+    if (val === 'DELETE ALL') {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.disabled = true;
+      btn.style.opacity = '0.45';
+      btn.style.cursor = 'not-allowed';
+    }
+  }
+
+  async function submitDeleteAllHistory() {
+    const val = document.getElementById('delete-all-confirm-input').value.trim().toUpperCase();
+    if (val !== 'DELETE ALL') {
+      toast('Please type DELETE ALL to confirm.', true);
+      return;
+    }
+    const btn = document.getElementById('btn-confirm-delete-all');
+    btn.disabled = true;
+    btn.innerText = 'Deleting All...';
+
+    try {
+      const res = await fetch('/api/sessions', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        credentials: 'include',
+        body: JSON.stringify({ confirm: 'DELETE ALL' })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to delete history');
+      toast(data.message || 'All session history has been deleted.');
+      closeDeleteAllModal();
+      await loadHistory();
+    } catch (err) {
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = '🗑️ Delete All History';
+    }
+  }
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    localStorage.clear();
+    window.location.href = '/login';
+  }
+
+  checkAuth();
+  loadHistory();
+</script>
+</body>
+</html>

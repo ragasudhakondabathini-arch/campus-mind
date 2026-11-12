@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Mind – Join Session</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+/* ── Full-bleed hero layout ── */
+body { background: none; }
+
+.join-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* Left hero */
+.join-hero {
+  background: linear-gradient(135deg, #1E1B4B 0%, #3B2D8F 60%, #6C63FF 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 32px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative circles */
+.join-hero::before, .join-hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  opacity: .15;
+}
+.join-hero::before { width: 400px; height: 400px; background: #fff; bottom: -100px; right: -100px; }
+.join-hero::after  { width: 200px; height: 200px; background: var(--accent); top: -60px; left: -40px; }
+
+.hero-brand {
+  display: flex; align-items: center; gap: 10px;
+  position: relative; z-index: 2;
+}
+.hero-brand .logo-icon {
+  width: 42px; height: 42px; background: var(--primary);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: #fff; box-shadow: 0 4px 12px rgba(108,99,255,.5);
+}
+.hero-brand h2 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.hero-brand p  { font-size: .7rem; color: rgba(255,255,255,.55); }
+
+.hero-content {
+  position: relative; z-index: 2;
+}
+.hero-content .hero-img {
+  font-size: 7rem; display: block; margin-bottom: 24px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+.hero-content h1 {
+  font-size: 2.2rem; font-weight: 800; color: #fff;
+  line-height: 1.2; margin-bottom: 14px;
+}
+.hero-content p {
+  font-size: .9rem; color: rgba(255,255,255,.7);
+  line-height: 1.6; max-width: 340px;
+}
+
+.hero-features {
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative; z-index: 2;
+}
+.hero-feature {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .82rem; color: rgba(255,255,255,.75);
+}
+.hero-feature .feat-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(255,255,255,.12);
+  display: flex; align-items: center; justify-content: center; font-size: .9rem;
+}
+
+/* Right form side */
+.join-form-side {
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+}
+
+.join-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xl);
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 420px;
+}
+.join-card-header {
+  margin-bottom: 28px;
+}
+.join-card-header h2 { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+.join-card-header p  { font-size: .84rem; color: var(--text-secondary); margin-top: 5px; }
+.join-card-header .jch-icon {
+  width: 50px; height: 50px; border-radius: 14px;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; margin-bottom: 14px;
+}
+
+/* Session found box */
+.session-found {
+  background: linear-gradient(135deg, #E6FAF4, #D1FAE5);
+  border: 1.5px solid var(--success);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  animation: fadeIn .3s ease;
+}
+.session-found .sf-header {
+  display: flex; align-items: center; gap: 7px;
+  font-size: .84rem; font-weight: 700; color: #00875A;
+  margin-bottom: 10px;
+}
+.session-found .sf-row {
+  display: flex; justify-content: space-between;
+  font-size: .78rem; padding: 4px 0;
+  border-bottom: 1px solid rgba(0,196,140,.15);
+}
+.session-found .sf-row:last-child { border-bottom: none; }
+.session-found .sf-label { color: var(--text-muted); }
+.session-found .sf-val   { font-weight: 600; color: var(--text-primary); }
+
+.session-not-found {
+  background: #FFE9ED;
+  border: 1.5px solid var(--danger);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: .82rem; color: var(--danger-dark);
+  font-weight: 600;
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 14px;
+}
+
+/* Joined success state */
+.joined-state {
+  text-align: center;
+  padding: 20px 0;
+}
+.joined-state .j-icon {
+  font-size: 3.5rem; margin-bottom: 14px;
+  animation: bounce .6s ease;
+}
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.2); }
+}
+.joined-state h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+.joined-state p  { font-size: .84rem; color: var(--text-secondary); margin-bottom: 20px; }
+
+@media (max-width: 768px) {
+  .join-layout { grid-template-columns: 1fr; }
+  .join-hero { display: none; }
+  .join-form-side { padding: 24px 16px; align-items: flex-start; }
+  .join-card { max-width: 100%; border-radius: var(--radius-lg); padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+<div class="join-layout">
+  <!-- ── Hero ── -->
+  <div class="join-hero">
+    <div class="hero-brand">
+      <div class="logo-icon">🎓</div>
+      <div>
+        <h2>Campus Mind</h2>
+        <p>Smart Attendance System</p>
+      </div>
+    </div>
+
+    <div class="hero-content">
+      <span class="hero-img">🧑‍💻</span>
+      <h1>Join Your Class<br>Attendance</h1>
+      <p>Connect to the classroom Wi-Fi, enter your details and join the active session in seconds.</p>
+    </div>
+
+    <div class="hero-features">
+      <div class="hero-feature">
+        <div class="feat-icon">📶</div>
+        Wi-Fi based proximity detection
+      </div>
+      <div class="hero-feature">
+        <div class="feat-icon">⏱️</div>
+        Real-time attendance tracking
+      </div>
+      <div class="hero-feature">
+        <div class="feat-icon">🔄</div>
+        Auto-reconnect with grace period
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Form Side ── -->
+  <div class="join-form-side">
+    <div class="join-card fade-in">
+      <div class="join-card-header">
+        <div class="jch-icon">👨‍🎓</div>
+        <h2>Join Session</h2>
+        <p>Enter your details to check in and start attendance tracking.</p>
+      </div>
+
+      <!-- Form -->
+      <div id="join-form-section">
+        <form id="join-form">
+          <div class="form-group">
+            <label class="form-label">Student ID / Roll No. <span class="required">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon">🎫</span>
+              <input type="text" id="student-id" class="form-control"
+                     placeholder="e.g. STU101" required maxlength="30"
+                     autocomplete="off" style="text-transform:uppercase">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your Name <span class="required">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon">👤</span>
+              <input type="text" id="student-name" class="form-control"
+                     placeholder="Enter your full name" required maxlength="60">
+            </div>
+          </div>
+
+          <!-- Session status placeholder -->
+          <div id="session-status-box"></div>
+
+          <button type="submit" class="btn btn-primary btn-lg btn-full" id="join-btn" disabled>
+            🚀 Join Session
+          </button>
+        </form>
+
+        <p class="text-center text-xs text-muted mt-3">
+          Make sure you are connected to the classroom Wi-Fi network before joining.
+        </p>
+      </div>
+
+      <!-- Success state -->
+      <div id="joined-section" style="display:none">
+        <div class="joined-state">
+          <div class="j-icon">🎉</div>
+          <h3>You're Checked In!</h3>
+          <p>Attendance tracking has started. Stay connected to the Wi-Fi.</p>
+          <a id="dashboard-link" href="#" class="btn btn-primary btn-lg btn-full">
+            📊 View My Attendance Dashboard
+          </a>
+          <button class="btn btn-outline btn-full mt-2" onclick="resetForm()">
+            ↺ Join Another Session
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/static/js/shared.js"></script>
+<script>
+let activeSession = null;
+let checkTimer = null;
+
+// ── Fetch active session ──
+async function checkActiveSession() {
+  const box = document.getElementById('session-status-box');
+  try {
+    const r = await apiFetch('/api/sessions/active');
+    if (r.active) {
+      activeSession = r;
+      box.innerHTML = `
+        <div class="session-found">
+          <div class="sf-header">✅ Active Session Found</div>
+          <div class="sf-row"><span class="sf-label">Subject</span><span class="sf-val">${r.subject}</span></div>
+          <div class="sf-row"><span class="sf-label">Faculty</span><span class="sf-val">${r.faculty_name}</span></div>
+          <div class="sf-row"><span class="sf-label">Session Duration</span><span class="sf-val">${r.duration_min} Minutes</span></div>
+          <div class="sf-row"><span class="sf-label">Reconnect Grace</span><span class="sf-val">${r.grace_sec} Seconds</span></div>
+        </div>`;
+      document.getElementById('join-btn').disabled = false;
+    } else {
+      activeSession = null;
+      box.innerHTML = `<div class="session-not-found">❌ No active session found. Ask your faculty to start one.</div>`;
+      document.getElementById('join-btn').disabled = true;
+    }
+  } catch(e) {
+    activeSession = null;
+    box.innerHTML = `<div class="session-not-found">❌ Could not connect to server.</div>`;
+    document.getElementById('join-btn').disabled = true;
+  }
+}
+
+// Auto-refresh session check every 5 seconds
+checkActiveSession();
+checkTimer = setInterval(checkActiveSession, 5000);
+
+// ── Auto-uppercase student ID ──
+document.getElementById('student-id').addEventListener('input', function() {
+  const pos = this.selectionStart;
+  this.value = this.value.toUpperCase();
+  this.setSelectionRange(pos, pos);
+});
+
+// ── Join ──
+document.getElementById('join-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!activeSession) return showToast('No active session found', 'error');
+
+  const student_id   = document.getElementById('student-id').value.trim().toUpperCase();
+  const student_name = document.getElementById('student-name').value.trim();
+
+  if (!student_id)   return showToast('Please enter your Student ID', 'error');
+  if (!student_name) return showToast('Please enter your name', 'error');
+
+  const btn = document.getElementById('join-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Joining…';
+
+  try {
+    const res = await apiFetch(`/api/sessions/${activeSession.session_id}/join`, {
+      method: 'POST',
+      body: { student_id, student_name }
+    });
+
+    clearInterval(checkTimer);
+    showToast('Joined successfully! Redirecting…', 'success');
+
+    // Store for dashboard
+    localStorage.setItem('attendify_student_id',   student_id);
+    localStorage.setItem('attendify_student_name', student_name);
+    localStorage.setItem('attendify_session_id',   res.session_id);
+
+    const dashUrl = `/student/dashboard?session_id=${res.session_id}&student_id=${encodeURIComponent(student_id)}&name=${encodeURIComponent(student_name)}`;
+    document.getElementById('dashboard-link').href = dashUrl;
+
+    setTimeout(() => {
+      document.getElementById('join-form-section').style.display = 'none';
+      document.getElementById('joined-section').style.display = '';
+    }, 800);
+
+  } catch(err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '🚀 Join Session';
+  }
+});
+
+function resetForm() {
+  document.getElementById('join-form-section').style.display = '';
+  document.getElementById('joined-section').style.display    = 'none';
+  document.getElementById('join-form').reset();
+  document.getElementById('join-btn').disabled = true;
+  checkActiveSession();
+  checkTimer = setInterval(checkActiveSession, 5000);
+}
+</script>
+</body>
+</html>
+

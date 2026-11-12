@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Mind – Create Session</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.create-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+.session-form .field-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: flex-start;
+}
+.advanced-panel {
+  display: none;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  animation: fadeIn .25s ease;
+}
+.advanced-panel.open { display: block; }
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* Quick presets */
+.preset-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.preset-chip {
+  padding: 4px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: .75rem; font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--surface);
+}
+.preset-chip:hover, .preset-chip.selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* Summary card */
+.summary-card {
+  background: linear-gradient(135deg, var(--primary), #8B5CF6);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  color: #fff;
+}
+.summary-card h3 {
+  font-size: .88rem;
+  font-weight: 600;
+  opacity: .8;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.summary-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  font-size: .88rem;
+}
+.summary-item:last-child { border-bottom: none; }
+.summary-item .s-icon { font-size: 1.1rem; opacity: .8; width: 22px; }
+.summary-item .s-label { opacity: .75; min-width: 90px; font-size: .78rem; }
+.summary-item .s-val   { font-weight: 700; margin-left: auto; }
+
+/* Recent sessions */
+.recent-session-row {
+  display: flex; align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.recent-session-row:last-child { border-bottom: none; }
+.recent-session-row .rs-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; flex-shrink: 0;
+}
+.recent-session-row .rs-info { flex: 1; min-width: 0; }
+.recent-session-row .rs-subject {
+  font-size: .84rem; font-weight: 600; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.recent-session-row .rs-meta {
+  font-size: .72rem; color: var(--text-muted); margin-top: 2px;
+}
+.recent-session-row .rs-pct {
+  font-size: .84rem; font-weight: 700; color: var(--success);
+}
+
+@media (max-width: 900px) {
+  .create-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-text"><h2>Campus Mind</h2><p>Smart Attendance System</p></div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="avatar" id="faculty-avatar">DS</div>
+      <div class="profile-info">
+        <div class="name" id="faculty-name-display">Faculty Member</div>
+        <div class="role">Faculty</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/faculty/create-session" class="nav-link active"><span class="nav-icon">➕</span>Create Session</a>
+      <a href="/faculty/live" class="nav-link" id="live-link"><span class="nav-icon">📡</span>Active Session</a>
+      <a href="#" class="nav-link" id="history-nav-link"><span class="nav-icon">📋</span>History</a>
+      <a href="#" class="nav-link"><span class="nav-icon">📊</span>Reports</a>
+      <a href="#" class="nav-link"><span class="nav-icon">⚙️</span>Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link" style="color:var(--danger)"><span class="nav-icon">🚪</span>Logout</a>
+    </div>
+  </aside>
+  <div class="sidebar-overlay"></div>
+
+  <!-- ── Main ── -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-3">
+        <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+        <span class="page-title">Create Session</span>
+      </div>
+      <div class="header-right">
+        <span class="header-datetime" id="clock"></span>
+      </div>
+    </header>
+
+    <main class="page-content fade-in">
+      <div class="create-grid">
+        <!-- ─── Form Card ─── -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Create New Session</h2>
+            <p class="card-subtitle">Configure your class session and start attendance tracking.</p>
+          </div>
+
+          <form id="create-form" class="session-form">
+            <!-- Subject -->
+            <div class="form-group">
+              <label class="form-label">Subject Name <span class="required">*</span></label>
+              <div class="input-wrap">
+                <span class="input-icon">📚</span>
+                <input type="text" id="subject" class="form-control"
+                       placeholder="e.g. Python Programming, Data Structures…"
+                       required maxlength="100">
+              </div>
+            </div>
+
+            <!-- Faculty Name -->
+            <div class="form-group">
+              <label class="form-label">Faculty Name <span class="required">*</span></label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="faculty-name" class="form-control"
+                       value="" placeholder="Enter Faculty Name" required maxlength="80">
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="form-group">
+              <label class="form-label">Session Duration <span class="required">*</span></label>
+              <div class="number-input-wrap">
+                <input type="number" id="duration" class="form-control"
+                       value="60" min="10" max="300" step="5">
+                <div class="num-stepper">
+                  <button type="button" data-dir="up">▲</button>
+                  <button type="button" data-dir="down">▼</button>
+                </div>
+                <span class="unit-label">Minutes</span>
+              </div>
+              <div class="preset-chips" id="duration-presets">
+                <span class="preset-chip" data-val="30" data-target="duration">30 min</span>
+                <span class="preset-chip selected" data-val="45" data-target="duration">45 min</span>
+                <span class="preset-chip" data-val="60" data-target="duration">60 min</span>
+                <span class="preset-chip" data-val="90" data-target="duration">90 min</span>
+                <span class="preset-chip" data-val="120" data-target="duration">2 hrs</span>
+              </div>
+              <p class="form-hint">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                Total planned duration of the class (e.g. 30, 45, 60, 90 minutes).
+              </p>
+            </div>
+
+            <!-- Grace Time -->
+            <div class="form-group">
+              <label class="form-label">Student Reconnect Grace Time <span class="required">*</span></label>
+              <div class="number-input-wrap">
+                <input type="number" id="grace" class="form-control"
+                       value="90" min="10" max="300" step="10">
+                <div class="num-stepper">
+                  <button type="button" data-dir="up">▲</button>
+                  <button type="button" data-dir="down">▼</button>
+                </div>
+                <span class="unit-label">Seconds</span>
+              </div>
+              <div class="preset-chips" id="grace-presets">
+                <span class="preset-chip" data-val="30" data-target="grace">30 s</span>
+                <span class="preset-chip" data-val="60" data-target="grace">60 s</span>
+                <span class="preset-chip selected" data-val="90" data-target="grace">90 s</span>
+                <span class="preset-chip" data-val="120" data-target="grace">120 s</span>
+              </div>
+              <p class="form-hint">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                Time allowed for students to reconnect before their attendance timer pauses (e.g. 15, 30, 60, 90 seconds).
+              </p>
+            </div>
+
+            <!-- Advanced Options -->
+            <div class="mt-3">
+              <button type="button" class="btn btn-ghost btn-sm" id="advanced-toggle">
+                ⚙️ Advanced Options <span id="adv-arrow">▾</span>
+              </button>
+              <div class="advanced-panel" id="advanced-panel">
+                <div class="form-group mb-2">
+                  <label class="form-label">Minimum Attendance % to Mark Present</label>
+                  <div class="number-input-wrap">
+                    <input type="number" id="min-pct" class="form-control" value="75" min="1" max="100" step="5">
+                    <div class="num-stepper">
+                      <button type="button" data-dir="up">▲</button>
+                      <button type="button" data-dir="down">▼</button>
+                    </div>
+                    <span class="unit-label">%</span>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Room / Location (optional)</label>
+                  <div class="input-wrap">
+                    <span class="input-icon">🏫</span>
+                    <input type="text" id="room" class="form-control" placeholder="e.g. Lab 3, Seminar Hall A">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" id="reset-btn">↺ Reset</button>
+              <button type="submit" class="btn btn-primary btn-lg" id="start-btn">
+                ▶ Start Session
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ─── Right Panel ─── -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Summary -->
+          <div class="summary-card" id="session-summary">
+            <h3>Session Preview</h3>
+            <div class="summary-item">
+              <span class="s-icon">📚</span>
+              <span class="s-label">Subject</span>
+              <span class="s-val" id="sum-subject">—</span>
+            </div>
+            <div class="summary-item">
+              <span class="s-icon">⏱️</span>
+              <span class="s-label">Duration</span>
+              <span class="s-val" id="sum-duration">60 min</span>
+            </div>
+            <div class="summary-item">
+              <span class="s-icon">📶</span>
+              <span class="s-label">Grace Time</span>
+              <span class="s-val" id="sum-grace">90 sec</span>
+            </div>
+            <div class="summary-item">
+              <span class="s-icon">👤</span>
+              <span class="s-label">Faculty</span>
+              <span class="s-val" id="sum-faculty">—</span>
+            </div>
+          </div>
+
+          <!-- Recent Sessions -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" style="font-size:.9rem">Recent Sessions</h3>
+            </div>
+            <div id="recent-list">
+              <div class="empty-state" style="padding:20px 0">
+                <div class="empty-icon">📋</div>
+                <p>No sessions yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="/static/js/shared.js"></script>
+<script>
+// ── Live summary update ──
+function updateSummary() {
+  document.getElementById('sum-subject').textContent  = document.getElementById('subject').value.trim() || '—';
+  document.getElementById('sum-duration').textContent = document.getElementById('duration').value + ' min';
+  document.getElementById('sum-grace').textContent    = document.getElementById('grace').value + ' sec';
+  document.getElementById('sum-faculty').textContent  = document.getElementById('faculty-name').value.trim() || '—';
+}
+['subject','duration','grace','faculty-name'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updateSummary);
+});
+
+// ── Preset chips ──
+document.querySelectorAll('.preset-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const target = chip.dataset.target;
+    const val    = chip.dataset.val;
+    document.getElementById(target).value = val;
+    // deselect siblings
+    document.querySelectorAll(`.preset-chip[data-target="${target}"]`).forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    updateSummary();
+  });
+});
+
+// ── Advanced toggle ──
+document.getElementById('advanced-toggle').addEventListener('click', () => {
+  const panel = document.getElementById('advanced-panel');
+  const arrow = document.getElementById('adv-arrow');
+  panel.classList.toggle('open');
+  arrow.textContent = panel.classList.contains('open') ? '▴' : '▾';
+});
+
+// ── Reset ──
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('create-form').reset();
+  document.getElementById('duration').value = 60;
+  document.getElementById('grace').value = 90;
+  document.getElementById('faculty-name').value = '';
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.preset-chip[data-val="60"][data-target="duration"]').forEach(c => c.classList.add('selected'));
+  document.querySelectorAll('.preset-chip[data-val="90"][data-target="grace"]').forEach(c => c.classList.add('selected'));
+  updateSummary();
+});
+
+// ── Submit ──
+document.getElementById('create-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('start-btn');
+  const subject = document.getElementById('subject').value.trim();
+  const faculty_name = document.getElementById('faculty-name').value.trim();
+  const duration_min = parseInt(document.getElementById('duration').value);
+  const grace_sec    = parseInt(document.getElementById('grace').value);
+
+  if (!subject) return showToast('Please enter a subject name', 'error');
+  if (!faculty_name) return showToast('Please enter faculty name', 'error');
+  if (isNaN(duration_min) || duration_min < 1) return showToast('Invalid duration', 'error');
+  if (isNaN(grace_sec) || grace_sec < 1) return showToast('Invalid grace time', 'error');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Starting…';
+  try {
+    const res = await apiFetch('/api/sessions', {
+      method: 'POST',
+      body: { subject, faculty_name, duration_min, grace_sec }
+    });
+    showToast('Session started successfully! Redirecting…', 'success');
+    setTimeout(() => { window.location.href = '/faculty/live'; }, 1200);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '▶ Start Session';
+  }
+});
+
+// ── Load recent sessions ──
+async function loadRecent() {
+  try {
+    const sessions = await apiFetch('/api/sessions/history/all');
+    const list = document.getElementById('recent-list');
+    if (!sessions.length) return;
+    list.innerHTML = sessions.slice(0, 5).map(s => {
+      const d = new Date(s.started_at * 1000);
+      const pct = s.total > 0 ? Math.round(s.present / s.total * 100) : 0;
+      return `
+        <div class="recent-session-row">
+          <div class="rs-icon">📚</div>
+          <div class="rs-info">
+            <div class="rs-subject">${s.subject}</div>
+            <div class="rs-meta">${d.toLocaleDateString()} · ${s.duration_min} min · ${s.total} students</div>
+          </div>
+          <div class="rs-pct">${pct}%</div>
+        </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+// ── Check if active session → redirect to live ──
+async function checkActive() {
+  try {
+    const r = await apiFetch('/api/sessions/active');
+    if (r.active) {
+      document.getElementById('live-link').classList.add('active');
+      document.getElementById('live-link').innerHTML = '<span class="nav-icon">📡</span>Active Session <span class="badge">LIVE</span>';
+    }
+  } catch(e) {}
+}
+
+// Update avatar initials
+function updateAvatar() {
+  const name = document.getElementById('faculty-name').value.trim();
+  if (!name) return;
+  const parts = name.replace(/^Dr\.?\s*/i,'').split(' ');
+  const initials = parts.map(p=>p[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('faculty-avatar').textContent = initials;
+  document.getElementById('faculty-name-display').textContent = name;
+}
+document.getElementById('faculty-name').addEventListener('input', updateAvatar);
+
+updateSummary();
+loadRecent();
+checkActive();
+</script>
+</body>
+</html>
+

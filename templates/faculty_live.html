@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Mind – Live Session</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+/* ── Live header info bar ── */
+.live-info-bar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.live-title { font-size: 1.3rem; font-weight: 800; color: var(--text-primary); }
+.live-subject { font-size: .82rem; color: var(--text-secondary); margin-top: 2px; }
+
+/* Timer block */
+.timer-block {
+  text-align: center;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+}
+.timer-block .t-label { font-size: .68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.timer-block .t-value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); font-family: 'Inter', monospace; letter-spacing: 2px; margin: 2px 0; }
+.timer-block .t-sub   { font-size: .7rem; color: var(--text-muted); }
+.timer-block.warning .t-value { color: var(--warning); }
+.timer-block.danger  .t-value { color: var(--danger);  }
+
+/* ── Stats row ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* ── Students table card ── */
+.students-card {}
+.students-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap; gap: 10px;
+}
+
+/* ── Connection quality col ── */
+.wifi-icon { font-size: 1rem; }
+
+/* ── Empty / no session states ── */
+.no-session-state {
+  text-align: center;
+  padding: 80px 24px;
+}
+.no-session-state h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+.no-session-state p  { color: var(--text-secondary); font-size: .9rem; margin-bottom: 24px; }
+
+/* ── End session button ── */
+#end-btn {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  z-index: 200;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .live-info-bar { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .timer-block .t-value { font-size: 1.4rem; }
+}
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-text"><h2>Campus Mind</h2><p>Smart Attendance System</p></div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="avatar" id="faculty-avatar">DS</div>
+      <div class="profile-info">
+        <div class="name" id="faculty-name-display">Faculty</div>
+        <div class="role">Faculty</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/faculty/create-session" class="nav-link"><span class="nav-icon">➕</span>Create Session</a>
+      <a href="/faculty/live" class="nav-link active"><span class="nav-icon">📡</span>Active Session</a>
+      <a href="#" class="nav-link"><span class="nav-icon">📋</span>History</a>
+      <a href="#" class="nav-link"><span class="nav-icon">📊</span>Reports</a>
+      <a href="#" class="nav-link"><span class="nav-icon">⚙️</span>Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="nav-link" style="color:var(--danger)"><span class="nav-icon">🚪</span>Logout</a>
+    </div>
+  </aside>
+  <div class="sidebar-overlay"></div>
+
+  <!-- ── Main ── -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="flex items-center gap-3">
+        <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+        <span class="page-title" id="page-title-txt">Live Session</span>
+      </div>
+      <div class="header-right">
+        <span class="header-datetime" id="clock"></span>
+        <span class="header-badge" id="session-status-badge" style="display:none">
+          <span class="dot"></span> Session Active
+        </span>
+      </div>
+    </header>
+
+    <main class="page-content fade-in" id="main-content">
+      <!-- Loading -->
+      <div id="loading-state" class="text-center" style="padding:80px">
+        <div class="spinner" style="width:36px;height:36px;border-color:var(--border);border-top-color:var(--primary);margin:0 auto 16px;"></div>
+        <p class="text-muted">Loading session…</p>
+      </div>
+
+      <!-- No session -->
+      <div id="no-session-state" class="no-session-state" style="display:none">
+        <div style="font-size:4rem;margin-bottom:16px">📡</div>
+        <h2>No Active Session</h2>
+        <p>Start a new session to begin tracking attendance in real time.</p>
+        <a href="/faculty/create-session" class="btn btn-primary btn-lg">➕ Create New Session</a>
+      </div>
+
+      <!-- Live dashboard (hidden until session loaded) -->
+      <div id="live-dashboard" style="display:none">
+        <!-- Info bar -->
+        <div class="live-info-bar">
+          <div>
+            <div class="live-title" id="sess-title">Live Session – <span id="sess-subject"></span></div>
+            <div class="live-subject">Faculty: <span id="sess-faculty"></span></div>
+          </div>
+          <div class="timer-block" id="timer-block">
+            <div class="t-label">Remaining Time</div>
+            <div class="t-value" id="timer-remaining">00:00</div>
+            <div class="t-sub">/ <span id="timer-total">00:00</span></div>
+          </div>
+          <div style="display:grid;gap:8px;">
+            <div class="timer-block">
+              <div class="t-label">Session Duration</div>
+              <div class="t-value" id="sess-duration-display" style="font-size:1.1rem">—</div>
+            </div>
+            <div class="timer-block">
+              <div class="t-label">Reconnect Grace</div>
+              <div class="t-value" id="sess-grace-display" style="font-size:1.1rem">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card stat-blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Total Joined</div>
+          </div>
+          <div class="stat-card stat-green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="stat-present">0</div>
+            <div class="stat-label">Present</div>
+            <div class="stat-sub">(≥ 75%)</div>
+          </div>
+          <div class="stat-card stat-orange">
+            <div class="stat-icon">⏸</div>
+            <div class="stat-value" id="stat-paused">0</div>
+            <div class="stat-label">Partial</div>
+            <div class="stat-sub">(25% – 75%)</div>
+          </div>
+          <div class="stat-card stat-red">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-value" id="stat-dropped">0</div>
+            <div class="stat-label">Dropped</div>
+            <div class="stat-sub">(&lt; 25%)</div>
+          </div>
+        </div>
+
+        <!-- Students table -->
+        <div class="card students-card">
+          <div class="students-header">
+            <h3 class="card-title">Live Students (<span id="student-count">0</span>)</h3>
+            <div class="search-bar" style="max-width:240px">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-input" placeholder="Search by ID or name…">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Attended Time</th>
+                  <th>Connection</th>
+                </tr>
+              </thead>
+              <tbody id="students-tbody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:40px">Waiting for students to join…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- End Session FAB -->
+  <button class="btn btn-danger btn-lg" id="end-btn" style="display:none" onclick="endSession()">
+    ⏹ End Session
+  </button>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/static/js/shared.js"></script>
+<script>
+let sessionData = null;
+let ws = null;
+let studentsMap = {};
+let searchTerm = '';
+
+// ── Load session ──
+async function loadSession() {
+  try {
+    const r = await apiFetch('/api/sessions/active');
+    if (!r.active) {
+      showState('no-session');
+      return;
+    }
+    sessionData = r;
+    initDashboard(r);
+    showState('live');
+    connectWS();
+  } catch(e) {
+    showState('no-session');
+  }
+}
+
+function showState(state) {
+  document.getElementById('loading-state').style.display  = state==='loading' ? '' : 'none';
+  document.getElementById('no-session-state').style.display = state==='no-session' ? '' : 'none';
+  document.getElementById('live-dashboard').style.display = state==='live' ? '' : 'none';
+  document.getElementById('end-btn').style.display        = state==='live' ? '' : 'none';
+  document.getElementById('session-status-badge').style.display = state==='live' ? '' : 'none';
+}
+
+function initDashboard(s) {
+  document.getElementById('sess-subject').textContent = s.subject;
+  document.getElementById('page-title-txt').textContent = `Live – ${s.subject}`;
+  document.getElementById('sess-faculty').textContent  = s.faculty_name;
+  document.getElementById('sess-duration-display').textContent = s.duration_min + ' Min';
+  document.getElementById('sess-grace-display').textContent    = s.grace_sec + ' Sec';
+  document.getElementById('timer-total').textContent   = fmtSec(s.duration_min * 60);
+
+  const name = s.faculty_name.trim();
+  const parts = name.replace(/^Dr\.?\s*/i,'').split(' ');
+  document.getElementById('faculty-avatar').textContent = parts.map(p=>p[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('faculty-name-display').textContent = s.faculty_name;
+
+  updateTimer(s.remaining_sec, s.duration_min * 60);
+}
+
+function updateTimer(remaining, total) {
+  const el = document.getElementById('timer-remaining');
+  const block = document.getElementById('timer-block');
+  el.textContent = fmtSec(remaining);
+  block.classList.toggle('warning', remaining < 300 && remaining > 60);
+  block.classList.toggle('danger',  remaining <= 60);
+}
+
+// ── WebSocket ──
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new ReconnectingWS(
+    `${proto}://${location.host}/ws/faculty`,
+    onWSTick,
+    () => { /* connected */ },
+    () => { /* disconnected */ }
+  );
+}
+
+function onWSTick(data) {
+  if (data.type === 'session_ended') {
+    showToast('Session has ended', 'warning');
+    setTimeout(() => { window.location.href = '/faculty/create-session'; }, 1500);
+    return;
+  }
+  if (data.type !== 'tick') return;
+
+  updateTimer(data.remaining_sec, data.duration_sec);
+
+  document.getElementById('stat-total').textContent   = data.total;
+  document.getElementById('stat-present').textContent = data.present;
+  document.getElementById('stat-paused').textContent  = data.paused;
+  document.getElementById('stat-dropped').textContent = data.dropped;
+
+  // Update students map
+  studentsMap = {};
+  data.students.forEach(s => { studentsMap[s.student_id] = s; });
+
+  renderTable();
+}
+
+function renderTable() {
+  const rows = Object.values(studentsMap).filter(s => {
+    if (!searchTerm) return true;
+    return s.student_id.toLowerCase().includes(searchTerm) ||
+           s.student_name.toLowerCase().includes(searchTerm);
+  });
+
+  document.getElementById('student-count').textContent = Object.keys(studentsMap).length;
+
+  if (!rows.length && !Object.keys(studentsMap).length) {
+    document.getElementById('students-tbody').innerHTML =
+      '<tr><td colspan="6" class="text-center text-muted" style="padding:40px">Waiting for students to join…</td></tr>';
+    return;
+  }
+  if (!rows.length) {
+    document.getElementById('students-tbody').innerHTML =
+      '<tr><td colspan="6" class="text-center text-muted" style="padding:40px">No results match your search</td></tr>';
+    return;
+  }
+
+  document.getElementById('students-tbody').innerHTML = rows.map((s, i) => `
+    <tr>
+      <td class="text-muted text-sm">${i + 1}</td>
+      <td><code style="font-size:.8rem;background:var(--surface-2);padding:2px 6px;border-radius:4px">${s.student_id}</code></td>
+      <td class="font-semibold">${s.student_name}</td>
+      <td>${statusBadge(s.status)}</td>
+      <td class="font-semibold" style="font-family:monospace">${fmtSec(s.attended_sec)}</td>
+      <td>${signalHTML(s.last_seen)}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Search ──
+document.getElementById('search-input').addEventListener('input', e => {
+  searchTerm = e.target.value.toLowerCase();
+  renderTable();
+});
+
+// ── End Session ──
+async function endSession() {
+  if (!sessionData) return;
+  if (!confirm('Are you sure you want to end this session? All attendance will be finalized.')) return;
+  try {
+    await apiFetch(`/api/sessions/${sessionData.session_id}/end`, { method: 'POST' });
+    showToast('Session ended successfully', 'success');
+    ws && ws.close();
+    setTimeout(() => { window.location.href = '/faculty/create-session'; }, 1500);
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+loadSession();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Mind – Faculty Dashboard</title>
+  <link rel="stylesheet" href="/ui/shared.css">
+  <style>
+    /* View-specific tweaks */
+    .view-container {
+      display: none;
+    }
+
+    .view-container.active-view {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div class="brand-text">
+          <h1 id="app-brand-title">Campus Mind</h1>
+          <p>Smart Attendance System</p>
+        </div>
+      </div>
+
+      <div class="user-profile">
+        <div class="avatar" id="avatar-circle">
+          <span id="avatar-initials">FA</span>
+        </div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-faculty-name">Faculty</div>
+          <div class="user-role">Faculty</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item" id="nav-dashboard" onclick="switchView('dashboard')">
+          <span class="nav-icon">🏠</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item active" id="nav-create" onclick="switchView('create')">
+          <span class="nav-icon">➕</span>
+          <span>Create Session</span>
+        </button>
+        <button class="nav-item" id="nav-live" onclick="switchView('live')">
+          <span class="nav-icon">📡</span>
+          <span>Active Session</span>
+          <span class="nav-badge" id="sidebar-live-badge" style="display:none">LIVE</span>
+        </button>
+        <a href="/history" class="nav-item" id="nav-history">
+          <span class="nav-icon">🕒</span>
+          <span>History</span>
+        </a>
+        <a href="/history" class="nav-item" id="nav-reports">
+          <span class="nav-icon">📊</span>
+          <span>Reports</span>
+        </a>
+        <button class="nav-item" id="nav-settings" onclick="openSettings()">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="nav-item logout" onclick="logout()">
+          <span class="nav-icon">🚪</span>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+    <!-- ── Main Content Area ── -->
+    <div class="main-wrapper">
+      <!-- Top Nav Header -->
+      <header class="top-nav">
+        <div class="header-brand">
+          <button class="hamburger-btn" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+          </button>
+          <span>🎓 Campus Mind &nbsp;<small style="opacity:0.75; font-size: 0.85rem; font-weight:500;">Smart Attendance
+              System</small></span>
+        </div>
+        <div class="header-actions">
+          <div class="clock-display" id="clock-display">
+            📅 Wed, 15 Jan 2025 &nbsp; 10:24 AM
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <!-- ========================================================
+           PANEL 1: FACULTY CREATE SESSION DASHBOARD
+           ======================================================== -->
+        <section id="panel-create" class="view-container active-view">
+          <div class="master-card">
+            <div class="master-card-header">
+              <div>
+                <h2 class="master-title">Create New Session</h2>
+                <p class="master-subtitle">Configure your class session and start attendance tracking.</p>
+              </div>
+            </div>
+
+            <form id="create-session-form">
+              <!-- 1. Subject Name -->
+              <div class="form-group-ref">
+                <label class="label-ref">
+                  Subject Name <span class="req">*</span>
+                </label>
+                <div class="input-ref-wrap">
+                  <span class="input-ref-icon">📖</span>
+                  <input type="text" id="input-subject" class="input-ref" placeholder="Enter Subject Name (e.g. Mathematics, CS101)" value="" required>
+                </div>
+              </div>
+
+              <!-- 2. Session Duration -->
+              <div class="form-group-ref">
+                <label class="label-ref">
+                  Session Duration <span class="req">*</span>
+                </label>
+                <div class="duration-spinner-row">
+                  <div class="spinner-box">
+                    <input type="number" id="input-duration" min="5" max="300" step="5" value="60" required>
+                    <div class="spinner-controls">
+                      <button type="button" class="spinner-btn" onclick="stepNumber('input-duration', 5)">▲</button>
+                      <button type="button" class="spinner-btn" onclick="stepNumber('input-duration', -5)">▼</button>
+                    </div>
+                  </div>
+                  <span class="unit-text">Minutes</span>
+
+                  <div class="hint-bubble">
+                    <span class="hint-icon">i</span>
+                    <span>Total planned duration of the class (e.g., 30, 45, 60, 90 minutes).</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Student Reconnect Grace Time -->
+              <div class="form-group-ref">
+                <label class="label-ref">
+                  Student Reconnect Grace Time <span class="req">*</span>
+                </label>
+                <div class="duration-spinner-row">
+                  <div class="spinner-box">
+                    <input type="number" id="input-grace" min="10" max="300" step="15" value="90" required>
+                    <div class="spinner-controls">
+                      <button type="button" class="spinner-btn" onclick="stepNumber('input-grace', 15)">▲</button>
+                      <button type="button" class="spinner-btn" onclick="stepNumber('input-grace', -15)">▼</button>
+                    </div>
+                  </div>
+                  <span class="unit-text">Seconds</span>
+
+                  <div class="hint-bubble">
+                    <span class="hint-icon">i</span>
+                    <span>Time allowed for students to reconnect before their attendance timer pauses (e.g., 15, 30, 60,
+                      90 seconds).</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Windows Mobile Hotspot Validation Card -->
+              <div id="hotspot-status-card" style="margin: 22px 0 16px; padding: 18px; background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.25rem;">📶</span>
+                    <strong style="font-size: 0.95rem; color: var(--text-main);">Windows Mobile Hotspot Validation</strong>
+                  </div>
+                  <div id="hotspot-badge-pill" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: #FEE2E2; color: #DC2626;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span>
+                    <span id="hotspot-badge-text">Checking...</span>
+                  </div>
+                </div>
+
+                <div id="adv-hotspot-status" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+                  Checking Windows Mobile Hotspot network interface...
+                </div>
+
+                <!-- Error Warning Box when Hotspot is OFF -->
+                <div id="hotspot-required-warning" style="display:none; margin-top: 12px; padding: 12px 14px; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: var(--radius-sm); color: #991B1B; font-size: 0.85rem; font-weight: 600;">
+                  ⚠️ Windows Mobile Hotspot is OFF. Please turn ON Mobile Hotspot in Windows Settings on this laptop to enable session creation.
+                </div>
+              </div>
+
+              <!-- Advanced Options Accordion for SSID override -->
+              <div style="margin-bottom: 24px;">
+                <button type="button" class="advanced-accordion-btn" onclick="toggleAdvanced()">
+                  <span>⚙️</span> Advanced Network Options <span id="adv-caret">⌄</span>
+                </button>
+                <div id="advanced-drawer" style="display:none; padding: 16px; background: #F8FAFC; border: 1px dashed var(--border); border-radius: var(--radius-md); margin-top: 8px;">
+                  <label class="label-ref" style="font-size:0.8rem;">Custom Hotspot SSID (Optional Override)</label>
+                  <input type="text" id="input-ssid" class="input-ref" placeholder="Auto-detect or custom SSID" style="padding-left:14px;">
+                </div>
+              </div>
+
+              <!-- Action Buttons Row -->
+              <div class="btn-action-row">
+                <button type="button" class="btn-reset" onclick="resetCreateForm()">Reset</button>
+                <button type="submit" class="btn-start" id="btn-submit-start">
+                  Start Session &nbsp;▶
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- ========================================================
+           PANEL 2: FACULTY LIVE ATTENDANCE DASHBOARD
+           ======================================================== -->
+        <section id="panel-live" class="view-container">
+          <div class="master-card">
+            <!-- Card Header -->
+            <div class="master-card-header">
+              <div>
+                <h2 class="master-title" id="live-subject-heading">Live Session</h2>
+              </div>
+              <div>
+                <span class="pill-status active" id="session-active-pill">
+                  <span class="pulse-dot"></span> Session Active
+                </span>
+              </div>
+            </div>
+
+            <!-- Top 3 Metrics Cards -->
+            <div class="top-metrics-grid">
+              <!-- 1. Remaining Time -->
+              <div class="metric-box-ref">
+                <div class="metric-icon-circle blue">⏱️</div>
+                <div>
+                  <div class="metric-label-ref">Remaining Time</div>
+                  <div class="metric-val-ref" id="metric-remaining-time">
+                    00:00:00 <small>/ 00:00:00</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Session Duration -->
+              <div class="metric-box-ref">
+                <div class="metric-icon-circle indigo">🕒</div>
+                <div>
+                  <div class="metric-label-ref">Session Duration</div>
+                  <div class="metric-val-ref" id="metric-session-duration">-- Minutes</div>
+                </div>
+              </div>
+
+              <!-- 3. Reconnect Grace Time -->
+              <div class="metric-box-ref">
+                <div class="metric-icon-circle blue">📶</div>
+                <div>
+                  <div class="metric-label-ref">Reconnect Grace Time</div>
+                  <div class="metric-val-ref" id="metric-grace-time">-- Seconds</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 Summary Counter Cards -->
+            <div class="stats-4-grid">
+              <!-- Total Joined -->
+              <div class="stat-card-ref blue">
+                <div class="stat-badge-icon">👥</div>
+                <div>
+                  <div class="stat-num-ref" id="stat-total-count">0</div>
+                  <div class="stat-label-ref">Total Joined</div>
+                </div>
+              </div>
+
+              <!-- Present -->
+              <div class="stat-card-ref green">
+                <div class="stat-badge-icon">✅</div>
+                <div>
+                  <div class="stat-num-ref" id="stat-present-count">0</div>
+                  <div class="stat-label-ref">Present <span style="font-size:0.65rem; font-weight:700; opacity:0.85; text-transform:uppercase;">(Provisional)</span></div>
+                  <div class="stat-sub-ref">(≥ 75%)</div>
+                </div>
+              </div>
+
+              <!-- Partial -->
+              <div class="stat-card-ref orange">
+                <div class="stat-badge-icon">⏱️</div>
+                <div>
+                  <div class="stat-num-ref" id="stat-partial-count">0</div>
+                  <div class="stat-label-ref">Partial <span style="font-size:0.65rem; font-weight:700; opacity:0.85; text-transform:uppercase;">(Provisional)</span></div>
+                  <div class="stat-sub-ref">(25% – 74%)</div>
+                </div>
+              </div>
+
+              <!-- Dropped -->
+              <div class="stat-card-ref red">
+                <div class="stat-badge-icon">⚠️</div>
+                <div>
+                  <div class="stat-num-ref" id="stat-dropped-count">0</div>
+                  <div class="stat-label-ref">Dropped <span style="font-size:0.65rem; font-weight:700; opacity:0.85; text-transform:uppercase;">(Provisional)</span></div>
+                  <div class="stat-sub-ref">(&lt; 25%)</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Students Table Section -->
+            <div>
+              <div class="table-header-row">
+                <h3 class="table-title">Live Students (<span id="students-badge-count">0</span>)</h3>
+                <div class="search-ref-wrap">
+                  <span class="search-ref-icon">🔍</span>
+                  <input type="text" id="table-search-input" placeholder="Search by ID or name..."
+                    oninput="onSearchStudents()">
+                </div>
+              </div>
+
+              <div style="overflow-x: auto;">
+                <table class="table-ref">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px;">#</th>
+                      <th>Student ID</th>
+                      <th>Name</th>
+                      <th>Connection Status</th>
+                      <th>Attended Time</th>
+                      <th>Attendance (Provisional)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="live-students-tbody">
+                    <!-- Dynamic rows rendered here -->
+                    <tr>
+                      <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        Waiting for student check-ins...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- End Session Button at Bottom Right -->
+              <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                <button type="button" class="btn-end-session" onclick="confirmEndSession()">
+                  ■ End Session
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+           PANEL 3: DASHBOARD OVERVIEW / EMPTY STATE
+           ======================================================== -->
+        <section id="panel-dashboard" class="view-container">
+          <div class="master-card" style="text-align: center; padding: 48px 24px;">
+            <div style="font-size: 3.5rem; margin-bottom: 16px;">🎓</div>
+            <h2 class="master-title" style="margin-bottom: 8px;">Faculty Central Dashboard</h2>
+            <p class="master-subtitle" style="max-width: 500px; margin: 0 auto 24px;">
+              Manage and monitor student attendance sessions in real time via classroom Wi-Fi boundary verification.
+            </p>
+
+            <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+              <button class="btn-start" onclick="switchView('create')">
+                ➕ Create New Session
+              </button>
+              <a href="/history" class="btn-reset"
+                style="text-decoration:none; display:inline-flex; align-items:center;">
+                📋 View Past Sessions
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+           PANEL 4: SYSTEM & FACULTY SETTINGS
+           ======================================================== -->
+        <section id="panel-settings" class="view-container">
+          <div class="master-card">
+            <div class="master-card-header">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(108, 99, 255, 0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⚙️</div>
+                <div>
+                  <h2 class="master-title">System Settings & Preferences</h2>
+                  <p class="master-subtitle">Configure session defaults, attendance grading rules, hotspot security, and faculty profile</p>
+                </div>
+              </div>
+            </div>
+
+            <form id="settings-form" onsubmit="saveSettings(event)">
+              <!-- Section 1: Faculty Profile -->
+              <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                  <span>👤</span> Faculty Profile
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+                  <div>
+                    <label class="label-ref" style="margin-bottom: 6px;">Faculty Identifier</label>
+                    <input type="text" id="setting-faculty-id" class="input-ref" readonly style="background: #E2E8F0; color: #64748B; cursor: not-allowed; padding-left: 14px;" />
+                  </div>
+                  <div>
+                    <label class="label-ref" style="margin-bottom: 6px;">Display Name <span class="req">*</span></label>
+                    <input type="text" id="setting-faculty-name" class="input-ref" required placeholder="e.g. Faculty Member" style="padding-left: 14px;" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: Session Defaults -->
+              <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                  <span>⏱️</span> Session Timing Defaults
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+                  <div>
+                    <label class="label-ref" style="margin-bottom: 6px;">Default Duration (Minutes)</label>
+                    <input type="number" id="setting-duration" class="input-ref" min="5" max="300" required style="padding-left: 14px;" />
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Initial duration prefilled when creating new attendance sessions.</p>
+                  </div>
+                  <div>
+                    <label class="label-ref" style="margin-bottom: 6px;">Disconnect Grace Period (Seconds)</label>
+                    <input type="number" id="setting-grace" class="input-ref" min="10" max="300" required style="padding-left: 14px;" />
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Window allowed for temporary Wi-Fi glitches before marking disconnected.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 3: Attendance Thresholds -->
+              <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                  <span>📊</span> Attendance Eligibility Thresholds
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+                  <div>
+                    <label class="label-ref" style="margin-bottom: 6px;">Present Status Threshold (%)</label>
+                    <input type="number" id="setting-present-threshold" class="input-ref" min="1" max="100" required style="padding-left: 14px;" />
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Minimum percentage of active presence required to be marked Present.</p>
+                  </div>
+                  <div>
+                    <label class="label-ref" style="margin-bottom: 6px;">Partial Status Threshold (%)</label>
+                    <input type="number" id="setting-partial-threshold" class="input-ref" min="1" max="100" required style="padding-left: 14px;" />
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Threshold between Absent and Partial status.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 4: Hotspot & Security Policies -->
+              <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px;">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                  <span>🛡️</span> Hotspot Validation & Demo Security
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                  <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" id="setting-require-hotspot" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;" />
+                    <div>
+                      <span style="font-size: 0.92rem; font-weight: 700; color: var(--text-main);">Enforce Windows Mobile Hotspot Active</span>
+                      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">When enabled, sessions can only be created and started when your laptop Mobile Hotspot is verified ON.</p>
+                    </div>
+                  </label>
+                  <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" id="setting-localhost-bypass" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;" />
+                    <div>
+                      <span style="font-size: 0.92rem; font-weight: 700; color: var(--text-main);">Allow Same-Laptop Localhost Testing</span>
+                      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Allows faculty and student demo to join from different tabs on the same laptop (127.0.0.1).</p>
+                    </div>
+                  </label>
+                  <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                    <input type="checkbox" id="setting-mock-mode" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;" />
+                    <div>
+                      <span style="font-size: 0.92rem; font-weight: 700; color: var(--text-main);">Simulation / Mock Mode (MOCK_MODE)</span>
+                      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Simulates 15–25 fake students joining, heartbeats, and random disconnects for testing without physical devices or real hotspot.</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="btn-action-row" style="margin-top: 28px;">
+                <button type="button" class="btn-reset" onclick="loadSettingsData()">Discard Changes</button>
+                <button type="submit" class="btn-start" id="btn-save-settings">
+                  💾 Save Settings
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-box" id="toast-box"></div>
+
+  <script>
+    let currentActiveSession = null;
+    let rawStudentsList = [];
+    let socket = null;
+    let isAdvancedOpen = false;
+    let publicConfig = null;
+
+    async function loadAppConfig() {
+      try {
+        const res = await fetch('/api/config/public');
+        if (res.ok) {
+          publicConfig = await res.json();
+          if (publicConfig.host_system_name) {
+            const brandEl = document.getElementById('app-brand-title');
+            if (brandEl) brandEl.innerText = publicConfig.host_system_name;
+          }
+        }
+      } catch (e) { }
+    }
+
+    // Toast Notification helper
+    function toast(message, isError = false) {
+      const box = document.getElementById('toast-box');
+      const el = document.createElement('div');
+      el.className = 'toast ' + (isError ? 'error' : 'success');
+      el.innerText = message;
+      box.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    // Hamburger toggle for mobile
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-backdrop').classList.toggle('open');
+    }
+
+    // Live dynamic clock matching reference "Wed, 15 Jan 2025  10:24 AM"
+    function refreshClock() {
+      const d = new Date();
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const dayName = days[d.getDay()];
+      const dateNum = d.getDate();
+      const monthName = months[d.getMonth()];
+      const year = d.getFullYear();
+
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const timeStr = `${hours}:${minutes} ${ampm}`;
+
+      document.getElementById('clock-display').innerHTML = `📅 ${dayName}, ${dateNum} ${monthName} ${year} &nbsp; ${timeStr}`;
+    }
+    setInterval(refreshClock, 1000);
+    refreshClock();
+
+    // Number input stepper
+    function stepNumber(id, delta) {
+      const input = document.getElementById(id);
+      let val = parseInt(input.value) || 0;
+      val += delta;
+      if (val < parseInt(input.min)) val = parseInt(input.min);
+      if (val > parseInt(input.max)) val = parseInt(input.max);
+      input.value = val;
+    }
+
+    // Toggle Advanced Drawer
+    function toggleAdvanced() {
+      isAdvancedOpen = !isAdvancedOpen;
+      document.getElementById('advanced-drawer').style.display = isAdvancedOpen ? 'block' : 'none';
+      document.getElementById('adv-caret').innerText = isAdvancedOpen ? '⌃' : '⌄';
+    }
+
+    // Reset Create Form
+    function resetCreateForm() {
+      document.getElementById('input-subject').value = '';
+      document.getElementById('input-duration').value = 45;
+      document.getElementById('input-grace').value = 30;
+      if (document.getElementById('input-ssid')) {
+        document.getElementById('input-ssid').value = '';
+      }
+      loadHotspotStatus();
+    }
+
+    // Format seconds to HH:MM:SS
+    function formatHMS(totalSec) {
+      if (totalSec < 0) totalSec = 0;
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = Math.floor(totalSec % 60);
+      return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+    }
+
+    // Switch between panels (views)
+    function switchView(viewName) {
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active-view'));
+      document.querySelectorAll('.nav-menu .nav-item').forEach(n => n.classList.remove('active'));
+
+      if (viewName === 'create') {
+        document.getElementById('panel-create').classList.add('active-view');
+        document.getElementById('nav-create').classList.add('active');
+      } else if (viewName === 'live') {
+        document.getElementById('panel-live').classList.add('active-view');
+        document.getElementById('nav-live').classList.add('active');
+      } else if (viewName === 'settings') {
+        document.getElementById('panel-settings').classList.add('active-view');
+        document.getElementById('nav-settings').classList.add('active');
+        loadSettingsData();
+      } else {
+        document.getElementById('panel-dashboard').classList.add('active-view');
+        document.getElementById('nav-dashboard').classList.add('active');
+      }
+
+      // Close mobile sidebar if open
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-backdrop').classList.remove('open');
+    }
+
+    // Check faculty authentication
+    async function verifyFacultyAuth() {
+      try {
+        const token = localStorage.getItem('faculty_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/auth/me', { headers, credentials: 'include' });
+        if (!res.ok) throw new Error('Not authenticated');
+        const data = await res.json();
+        const facultyName = data.name || data.faculty_id || 'Faculty';
+        document.getElementById('sidebar-faculty-name').innerText = facultyName;
+        localStorage.setItem('faculty_name', facultyName);
+        localStorage.setItem('faculty_id', data.faculty_id);
+        const initials = facultyName.split(' ').filter(n => n.length > 0).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('avatar-initials').innerText = initials || 'FA';
+      } catch {
+        window.location.href = '/login';
+      }
+    }
+
+    // Query Hotspot diagnostic status
+    async function loadHotspotStatus() {
+      try {
+        const res = await fetch('/api/hotspot/status?_t=' + Date.now(), { cache: 'no-store' });
+        const data = await res.json();
+        
+        const badgePill = document.getElementById('hotspot-badge-pill');
+        const badgeText = document.getElementById('hotspot-badge-text');
+        const statusEl = document.getElementById('adv-hotspot-status');
+        const btn = document.getElementById('btn-submit-start');
+        const warn = document.getElementById('hotspot-required-warning');
+
+        const clientCount = data.connected_clients_count !== undefined ? data.connected_clients_count : 0;
+        const ssidDisplay = data.ssid || 'CampusMind-Hotspot';
+
+        if (data.status_unknown) {
+          if (badgePill) {
+            badgePill.style.background = '#FEF3C7';
+            badgePill.style.color = '#B45309';
+          }
+          if (badgeText) badgeText.innerText = 'STATUS UNAVAILABLE (UNKNOWN)';
+          if (statusEl) {
+            statusEl.innerHTML = `<strong>Hotspot Status:</strong> Status Unavailable (Detection Failed) &nbsp;|&nbsp; <strong>Host IP:</strong> ${data.host_ip || '127.0.0.1'} &nbsp;|&nbsp; <strong>Connected Devices:</strong> 0`;
+          }
+          if (warn) {
+            warn.style.display = 'block';
+            warn.innerHTML = '⚠️ Windows Mobile Hotspot status could not be detected. Please verify your Mobile Hotspot in Windows Settings.';
+          }
+          if (btn) {
+            if (data.require_hotspot_on && !data.mock_mode) {
+              btn.disabled = true;
+              btn.style.opacity = '0.45';
+              btn.style.cursor = 'not-allowed';
+              btn.title = 'Hotspot status unavailable';
+            } else {
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+            }
+          }
+        } else if (data.hotspot_active) {
+          if (badgePill) {
+            badgePill.style.background = '#DCFCE7';
+            badgePill.style.color = '#15803D';
+          }
+          if (badgeText) badgeText.innerText = 'Hotspot Active (ON)';
+          if (statusEl) {
+            statusEl.innerHTML = `<strong>Broadcasting SSID:</strong> ${ssidDisplay} &nbsp;|&nbsp; <strong>Host IP:</strong> ${data.host_ip} &nbsp;|&nbsp; <strong>Connected Devices:</strong> ${clientCount}`;
+          }
+          if (warn) warn.style.display = 'none';
+          if (btn && btn.innerText.indexOf('Starting') === -1) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.title = 'Start Attendance Session';
+          }
+        } else {
+          if (badgePill) {
+            badgePill.style.background = '#FEE2E2';
+            badgePill.style.color = '#B91C1C';
+          }
+          if (badgeText) badgeText.innerText = 'Hotspot Inactive (OFF)';
+          if (statusEl) {
+            statusEl.innerHTML = `<strong>Detected SSID Config:</strong> ${ssidDisplay} &nbsp;|&nbsp; <strong>Host IP:</strong> ${data.host_ip || '127.0.0.1'} &nbsp;|&nbsp; <strong>Connected Devices:</strong> 0`;
+          }
+          if (warn) {
+            if (data.mock_mode) {
+              warn.style.display = 'none';
+            } else {
+              warn.style.display = 'block';
+              warn.innerHTML = '⚠️ Windows Mobile Hotspot is OFF. Please turn ON Mobile Hotspot in Windows Settings on this laptop to enable session creation.';
+            }
+          }
+          if (btn) {
+            if (data.require_hotspot_on && !data.mock_mode) {
+              btn.disabled = true;
+              btn.style.opacity = '0.45';
+              btn.style.cursor = 'not-allowed';
+              btn.title = 'Windows Mobile Hotspot must be ON before starting session';
+            } else {
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+              btn.title = 'Start Attendance Session (Mock Testing Mode)';
+            }
+          }
+        }
+
+        if (data.ssid && document.getElementById('input-ssid') && !document.getElementById('input-ssid').value) {
+          document.getElementById('input-ssid').placeholder = data.ssid;
+        }
+      } catch (e) { }
+    }
+
+    // Check Active Session
+    async function pollActiveSession() {
+      try {
+        const res = await fetch('/api/sessions/active');
+        const data = await res.json();
+        if (data.active && data.session) {
+          currentActiveSession = data.session;
+          document.getElementById('sidebar-live-badge').style.display = 'inline-block';
+
+          // Connect WebSocket if not connected
+          connectFacultyWebSocket();
+
+          // If on initial page load or user was on live, render live view
+          const isCreateActive = document.getElementById('panel-create').classList.contains('active-view');
+          // If user already on Create page intentionally, do not force switch, but if on live, refresh it
+          if (!isCreateActive && !document.getElementById('panel-dashboard').classList.contains('active-view')) {
+            switchView('live');
+          }
+        } else {
+          currentActiveSession = null;
+          document.getElementById('sidebar-live-badge').style.display = 'none';
+          if (document.getElementById('panel-live').classList.contains('active-view')) {
+            switchView('create');
+          }
+        }
+      } catch (e) { }
+    }
+
+    // WebSocket Live Updates
+    function connectFacultyWebSocket() {
+      if (socket && socket.readyState === WebSocket.OPEN) return;
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      socket = new WebSocket(`${proto}//${location.host}/ws/faculty`);
+
+      socket.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          if (msg.type === 'TICK' && msg.data) {
+            updateLiveDisplay(msg.data);
+          } else if (msg.type === 'SESSION_ENDED') {
+            toast('Attendance session ended.');
+            pollActiveSession();
+            switchView('create');
+          }
+        } catch (e) { }
+      };
+
+      socket.onclose = () => {
+        setTimeout(connectFacultyWebSocket, 3000);
+      };
+    }
+
+    // Render Live Session Data into Panel 2
+    function updateLiveDisplay(data) {
+      document.getElementById('live-subject-heading').innerText = `Live Session – ${data.subject}`;
+
+      // Remaining time display
+      const rem = data.remaining_seconds || 0;
+      const totalSec = (data.session_duration_minutes || 60) * 60;
+      document.getElementById('metric-remaining-time').innerHTML = `${formatHMS(rem)} <small>/ ${formatHMS(totalSec)}</small>`;
+      document.getElementById('metric-session-duration').innerText = `${data.session_duration_minutes} Minutes`;
+      document.getElementById('metric-grace-time').innerText = `${data.disconnect_grace_seconds} Seconds`;
+
+      // 4 Stat counts
+      document.getElementById('stat-total-count').innerText = data.total_joined || 0;
+      document.getElementById('stat-present-count').innerText = data.present_count || 0;
+      document.getElementById('stat-partial-count').innerText = data.partial_count || 0;
+      document.getElementById('stat-dropped-count').innerText = data.dropped_count || 0;
+
+      // Student records
+      rawStudentsList = data.students || [];
+      renderStudentsTable(rawStudentsList);
+    }
+
+    // Filter students search
+    function onSearchStudents() {
+      const q = document.getElementById('table-search-input').value.toLowerCase().trim();
+      const filtered = rawStudentsList.filter(s =>
+        (s.student_id && s.student_id.toLowerCase().includes(q)) ||
+        (s.display_name && s.display_name.toLowerCase().includes(q))
+      );
+      renderStudentsTable(filtered);
+    }
+
+    // Render Table
+    function renderStudentsTable(list) {
+      document.getElementById('students-badge-count').innerText = list.length;
+      const tbody = document.getElementById('live-students-tbody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">No students matching current filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((st, index) => {
+        let connClass = 'joined';
+        let connText = 'JOINED';
+        let connIcon = '📶';
+
+        const s = (st.current_status || 'JOINED').toUpperCase();
+        if (s === 'PAUSED') {
+          connClass = 'paused';
+          connText = 'PAUSED';
+          connIcon = '⏸️';
+        } else if (s === 'DISCONNECTED') {
+          connClass = 'disconnected';
+          connText = 'PAUSED';
+          connIcon = '⏸️';
+        } else if (s === 'DROPPED') {
+          connClass = 'dropped';
+          connText = 'DROPPED';
+          connIcon = '❌';
+        } else if (s === 'RECONNECTED') {
+          connClass = 'reconnected';
+          connText = 'RECONNECTED';
+          connIcon = '🔄';
+        }
+
+        const prov = (st.provisional_status || (s === 'DROPPED' ? 'DROPPED' : 'PRESENT')).toUpperCase();
+        let provClass = 'present';
+        if (prov === 'PARTIAL') {
+          provClass = 'partial';
+        } else if (prov === 'DROPPED') {
+          provClass = 'dropped';
+        }
+
+        return `
+        <tr>
+          <td><strong>${index + 1}</strong></td>
+          <td><span style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--primary);">${st.student_id}</span></td>
+          <td><strong>${st.display_name}</strong></td>
+          <td><span class="pill-status ${connClass}">${connIcon} ${connText}</span></td>
+          <td><span style="font-family:'JetBrains Mono', monospace; font-weight:700;">${formatHMS(st.total_seconds || 0)}</span></td>
+          <td><span class="pill-status ${provClass}">${prov}</span></td>
+        </tr>
+      `;
+      }).join('');
+    }
+
+    // Create & Start Session Form Submit
+    document.getElementById('create-session-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-start');
+      btn.disabled = true;
+      btn.innerText = 'Verifying Hotspot...';
+
+      // 1. Recheck Windows Mobile Hotspot immediately before starting
+      try {
+        const chkRes = await fetch('/api/hotspot/status?_t=' + Date.now(), { cache: 'no-store' });
+        const chkData = await chkRes.json();
+        if (chkData.require_hotspot_on && !chkData.mock_mode && !chkData.hotspot_active) {
+          toast('Cannot start session: Windows Mobile Hotspot is OFF. Please turn ON Mobile Hotspot on this laptop in Windows Settings.', true);
+          loadHotspotStatus();
+          btn.disabled = true;
+          btn.style.opacity = '0.45';
+          btn.style.cursor = 'not-allowed';
+          btn.innerHTML = 'Start Session &nbsp;▶';
+          return;
+        }
+      } catch (chkErr) { }
+
+      btn.innerText = 'Starting Session...';
+
+      const subject = document.getElementById('input-subject').value.trim();
+      const session_duration_minutes = parseInt(document.getElementById('input-duration').value) || 60;
+      const disconnect_grace_seconds = parseInt(document.getElementById('input-grace').value) || 90;
+      const hotspot_ssid = document.getElementById('input-ssid')?.value?.trim() || null;
+
+      try {
+        const token = localStorage.getItem('faculty_token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch('/api/session/start', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            subject,
+            session_duration_minutes,
+            disconnect_grace_seconds,
+            hotspot_ssid
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Could not start session');
+
+        toast('Session started successfully!');
+        currentActiveSession = data;
+        switchView('live');
+        connectFacultyWebSocket();
+        pollActiveSession();
+      } catch (err) {
+        toast(err.message, true);
+        loadHotspotStatus();
+      } finally {
+        loadHotspotStatus();
+      }
+    });
+
+    // End Session Confirm
+    async function confirmEndSession() {
+      if (!currentActiveSession) return;
+      if (!confirm('Are you sure you want to end this attendance session? All student attendance will be finalized and exported.')) {
+        return;
+      }
+
+      try {
+        const sid = currentActiveSession.session_id;
+        const res = await fetch(`/api/session/${sid}/end`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to end session');
+        toast('Session ended and exported successfully!');
+        setTimeout(() => {
+          window.location.href = '/history';
+        }, 900);
+      } catch (err) {
+        toast(err.message, true);
+      }
+    }
+
+    function openSettings() {
+      switchView('settings');
+    }
+
+    async function loadSettingsData() {
+      try {
+        const token = localStorage.getItem('faculty_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/settings', { headers, credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load settings');
+        const data = await res.json();
+
+        const idEl = document.getElementById('setting-faculty-id');
+        const nameEl = document.getElementById('setting-faculty-name');
+        const durEl = document.getElementById('setting-duration');
+        const grcEl = document.getElementById('setting-grace');
+        const presEl = document.getElementById('setting-present-threshold');
+        const partEl = document.getElementById('setting-partial-threshold');
+        const hotEl = document.getElementById('setting-require-hotspot');
+        const bpassEl = document.getElementById('setting-localhost-bypass');
+        const mockEl = document.getElementById('setting-mock-mode');
+
+        if (idEl) idEl.value = data.faculty_id || '';
+        if (nameEl) nameEl.value = data.faculty_name || '';
+        if (durEl) durEl.value = data.session_duration_minutes || 45;
+        if (grcEl) grcEl.value = data.disconnect_grace_seconds || 30;
+        if (presEl) presEl.value = data.present_threshold_pct || 75;
+        if (partEl) partEl.value = data.partial_threshold_pct || 25;
+        if (hotEl) hotEl.checked = !!data.require_hotspot_on;
+        if (bpassEl) bpassEl.checked = !!data.localhost_bypass;
+        if (mockEl) mockEl.checked = !!data.mock_mode;
+      } catch (err) {
+        toast('Error loading settings: ' + err.message, true);
+      }
+    }
+
+    async function saveSettings(e) {
+      if (e) e.preventDefault();
+      const saveBtn = document.getElementById('btn-save-settings');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+      }
+
+      try {
+        const payload = {
+          default_faculty_name: document.getElementById('setting-faculty-name').value.trim(),
+          session_duration_minutes: parseInt(document.getElementById('setting-duration').value, 10),
+          disconnect_grace_seconds: parseInt(document.getElementById('setting-grace').value, 10),
+          present_threshold_pct: parseInt(document.getElementById('setting-present-threshold').value, 10),
+          partial_threshold_pct: parseInt(document.getElementById('setting-partial-threshold').value, 10),
+          require_hotspot_on: document.getElementById('setting-require-hotspot').checked,
+          localhost_bypass: document.getElementById('setting-localhost-bypass').checked,
+          mock_mode: document.getElementById('setting-mock-mode') ? document.getElementById('setting-mock-mode').checked : false
+        };
+
+        const token = localStorage.getItem('faculty_token');
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to save settings');
+
+        toast('Settings saved successfully!');
+        if (data.settings && data.settings.faculty_name) {
+          const sideNameEl = document.getElementById('sidebar-faculty-name');
+          if (sideNameEl) sideNameEl.innerText = data.settings.faculty_name;
+          localStorage.setItem('faculty_name', data.settings.faculty_name);
+          const initials = data.settings.faculty_name.split(' ').filter(n => n.length > 0).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          const avatarEl = document.getElementById('avatar-initials');
+          if (avatarEl) avatarEl.innerText = initials || 'FA';
+        }
+        // Update input duration default on session create form
+        const inputDurEl = document.getElementById('input-duration');
+        if (inputDurEl && data.settings && data.settings.session_duration_minutes) {
+          inputDurEl.value = data.settings.session_duration_minutes;
+        }
+        loadHotspotStatus();
+      } catch (err) {
+        toast('Failed to save settings: ' + err.message, true);
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = '💾 Save Settings';
+        }
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.clear();
+      window.location.href = '/login';
+    }
+
+    // On page load: check URL params, auth, active session
+    (async function init() {
+      await loadAppConfig();
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewParam = urlParams.get('view') || urlParams.get('tab');
+      if (viewParam === 'live') {
+        switchView('live');
+      } else if (viewParam === 'create') {
+        switchView('create');
+      } else if (viewParam === 'settings' || window.location.pathname.endsWith('/settings')) {
+        switchView('settings');
+      } else if (viewParam === 'dashboard') {
+        switchView('dashboard');
+      }
+
+      verifyFacultyAuth();
+      loadHotspotStatus();
+      setInterval(loadHotspotStatus, 3000);
+      pollActiveSession();
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Mind – Student Attendance Portal</title>
+  <link rel="stylesheet" href="/ui/shared.css">
+  <style>
+    .student-view-wrap {
+      display: none;
+    }
+    .student-view-wrap.active-student-view {
+      display: block;
+    }
+  </style>
+</head>
+<body style="background: var(--app-bg);">
+
+<!-- Top Navigation Bar across both views -->
+<header class="top-nav" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+  <div class="header-brand">
+    <div class="brand-icon" style="width:34px; height:34px; font-size:18px;">🎓</div>
+    <div>
+      <span style="font-weight:800; font-size:1.05rem;" id="student-app-brand-name">Campus Mind</span>
+      <span style="font-size:0.75rem; opacity:0.75; margin-left:8px;">Smart Attendance System</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <!-- Student Profile Badge (Visible in Dashboard view) -->
+    <div id="student-header-profile" style="display:none; align-items:center; gap:10px;">
+      <div style="text-align: right;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: #fff;" id="hdr-profile-name">Student</div>
+        <div style="font-size: 0.72rem; color: rgba(255,255,255,0.7); font-family: 'JetBrains Mono', monospace;" id="hdr-profile-id">ID</div>
+      </div>
+      <div class="avatar" style="width:36px; height:36px; background:linear-gradient(135deg, #6C63FF, #00D4AA); font-size:0.82rem;" id="hdr-avatar-initials">
+        ST
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ========================================================
+     PANEL 3: STUDENT JOIN SESSION PAGE
+     ======================================================== -->
+<section id="view-student-join" class="student-view-wrap active-student-view">
+  <div class="student-join-wrapper" style="background: transparent; min-height: calc(100vh - var(--header-h));">
+    <div class="student-join-split">
+      <!-- Left Hero Column -->
+      <div class="student-join-left">
+        <!-- SVG Student Laptop Illustration -->
+        <div class="student-illustration-wrap">
+          <svg viewBox="0 0 320 240" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 15px 25px rgba(0,0,0,0.3));">
+            <!-- Background glow -->
+            <circle cx="160" cy="120" r="90" fill="#6C63FF" fill-opacity="0.15" />
+            <!-- Wi-Fi wave radiating overhead -->
+            <path d="M120 70C144 50 176 50 200 70" stroke="#00D4AA" stroke-width="5" stroke-linecap="round"/>
+            <path d="M135 85C150 72 170 72 185 85" stroke="#00D4AA" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="160" cy="98" r="4" fill="#00D4AA"/>
+            <!-- Plant pot on left -->
+            <path d="M50 180L55 210H75L80 180H50Z" fill="#3B82F6" fill-opacity="0.5"/>
+            <path d="M52 175C45 150 75 140 65 175" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+            <path d="M72 175C80 150 50 140 62 175" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+            <!-- Desk -->
+            <rect x="70" y="180" width="180" height="8" rx="4" fill="#64748B"/>
+            <rect x="90" y="188" width="6" height="40" rx="3" fill="#475569"/>
+            <rect x="224" y="188" width="6" height="40" rx="3" fill="#475569"/>
+            <!-- Student Avatar -->
+            <circle cx="160" cy="125" r="22" fill="#FBCFE8"/> <!-- Head -->
+            <path d="M142 118C142 105 155 100 165 100C175 100 180 106 178 118" fill="#1E293B"/> <!-- Hair -->
+            <path d="M135 178C135 155 145 148 160 148C175 148 185 155 185 178H135Z" fill="#6C63FF"/> <!-- Shirt -->
+            <!-- Laptop on desk -->
+            <rect x="135" y="160" width="50" height="30" rx="3" fill="#E2E8F0"/>
+            <rect x="138" y="163" width="44" height="24" rx="2" fill="#1E1B4B"/>
+            <polygon points="125,180 195,180 190,184 130,184" fill="#94A3B8"/>
+          </svg>
+        </div>
+
+        <h1 class="student-join-title">
+          Join Your Class<br>Attendance
+        </h1>
+        <p class="student-join-sub">
+          Connect to the classroom Wi-Fi, enter your details and join the active session.
+        </p>
+      </div>
+
+      <!-- Right Form Column (Crisp White Card) -->
+      <div>
+        <div class="student-join-card">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+            <div style="font-size:1.6rem; color:var(--primary);">👥</div>
+            <h2 style="font-size:1.45rem; font-weight:800; color:var(--text-main);">Join Session</h2>
+          </div>
+
+          <form id="student-join-form" autocomplete="off">
+            <!-- Student ID -->
+            <div class="form-group-ref">
+              <label class="label-ref">
+                Student ID / Roll No. <span class="req">*</span>
+              </label>
+              <div class="input-ref-wrap">
+                <span class="input-ref-icon">👤</span>
+                <input type="text" id="join-student-id" class="input-ref" placeholder="Enter Student ID / Roll No." required style="text-transform: uppercase;" value="" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Student Name -->
+            <div class="form-group-ref">
+              <label class="label-ref">
+                Your Name <span class="req">*</span>
+              </label>
+              <div class="input-ref-wrap">
+                <span class="input-ref-icon">👤</span>
+                <input type="text" id="join-student-name" class="input-ref" placeholder="Enter Your Name" required value="" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Active Session Details Banner -->
+            <div id="banner-session-found" class="session-found-box" style="display:none;">
+              <div class="session-found-header">
+                <span class="pulse-dot"></span> Active Session Found
+              </div>
+              <div class="session-detail-line">
+                <span class="key">Subject</span>
+                <span class="val" id="found-subject-text">: --</span>
+              </div>
+              <div class="session-detail-line">
+                <span class="key">Faculty</span>
+                <span class="val" id="found-faculty-text">: --</span>
+              </div>
+              <div class="session-detail-line">
+                <span class="key">Session Duration</span>
+                <span class="val" id="found-duration-text">: 60 Minutes</span>
+              </div>
+              <div class="session-detail-line">
+                <span class="key">Reconnect Grace</span>
+                <span class="val" id="found-grace-text">: 90 Seconds</span>
+              </div>
+            </div>
+
+            <!-- No Active Session Alert -->
+            <div id="banner-no-session" style="display:none; background:#FEF2F2; border:1px solid #FCA5A5; border-radius:var(--radius-md); padding:16px; margin:20px 0; font-size:0.85rem; color:#991B1B;">
+              <strong>⚠️ No Active Session Detected</strong><br>
+              Please connect to classroom Wi-Fi and wait for your faculty to start the session.
+              <button type="button" class="btn-reset" style="margin-top:10px; font-size:0.75rem; padding:6px 14px;" onclick="pollStudentSession()">
+                🔄 Refresh Status
+              </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-join-session" id="btn-join-submit">
+              ➔ &nbsp; Join Session
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     PANEL 4: STUDENT PERSONAL ATTENDANCE DASHBOARD
+     ======================================================== -->
+<section id="view-student-dash" class="student-view-wrap">
+  <div class="content-body" style="padding-top: 32px;">
+    <div class="master-card">
+      <!-- Top Title & Connection Pill -->
+      <div class="master-card-header" style="margin-bottom: 28px;">
+        <div>
+          <h2 class="master-title" id="dash-subject-title" style="font-size:1.6rem;">Class Session</h2>
+          <p class="master-subtitle" id="dash-faculty-subtitle">Faculty: --</p>
+        </div>
+        <div>
+          <span class="pill-status active" id="dash-connected-pill">
+            <span class="pulse-dot"></span> Connected
+          </span>
+        </div>
+      </div>
+
+      <!-- 3-Column Student Dashboard Layout Matching Reference -->
+      <div class="student-dash-grid">
+        <!-- 1. Left: Circular Progress Ring -->
+        <div class="ring-container">
+          <svg width="210" height="210" viewBox="0 0 210 210">
+            <circle cx="105" cy="105" r="88" fill="none" stroke="#E2E8F0" stroke-width="16" />
+            <circle id="student-ring-circle" class="progress-ring-circle" cx="105" cy="105" r="88" fill="none"
+                    stroke="#10B981" stroke-width="16" stroke-linecap="round"
+                    stroke-dasharray="552.92" stroke-dashoffset="132.7" />
+          </svg>
+          <div class="ring-center-info">
+            <div class="ring-percentage-text" id="dash-percent-val">76%</div>
+            <div class="ring-percentage-label">Attendance</div>
+          </div>
+        </div>
+
+        <!-- 2. Middle: Stacked Metrics Cards -->
+        <div class="student-metrics-col">
+          <!-- Session Remaining -->
+          <div class="student-metric-row">
+            <div class="student-metric-icon">⏱️</div>
+            <div class="student-metric-content">
+              <div class="sm-label">Session Remaining</div>
+              <div class="sm-val" id="dash-remaining-time">00:47:36 <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">/ 01:00:00</span></div>
+            </div>
+          </div>
+
+          <!-- Your Attended Time -->
+          <div class="student-metric-row">
+            <div class="student-metric-icon">⏳</div>
+            <div class="student-metric-content">
+              <div class="sm-label">Your Attended Time</div>
+              <div class="sm-val" id="dash-attended-time" style="color: var(--primary);">00:45:50</div>
+            </div>
+          </div>
+
+          <!-- Reconnect Grace Time -->
+          <div class="student-metric-row">
+            <div class="student-metric-icon">📶</div>
+            <div class="student-metric-content">
+              <div class="sm-label">Reconnect Grace Time</div>
+              <div class="sm-val" id="dash-grace-sec" style="font-size:1rem;">90 Seconds</div>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="student-metric-row" style="background:#fff;">
+            <div class="student-metric-icon">⚙️</div>
+            <div class="student-metric-content">
+              <div class="sm-label">Status</div>
+              <div style="margin-top:2px;">
+                <span class="pill-status joined" id="dash-student-status-badge">
+                  ✓ Joined (Attending)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Right: Wi-Fi Radar Connection Card -->
+        <div class="connected-card" id="student-conn-card">
+          <div class="connected-radar-icon" id="student-conn-icon">
+            📶
+          </div>
+          <div class="connected-title" id="student-conn-title">You are connected</div>
+          <div class="connected-desc" id="student-conn-desc">
+            Your attendance is being tracked in real time.
+          </div>
+
+          <div style="margin-top: 24px;">
+            <button type="button" class="btn-reset" style="font-size:0.75rem; padding:6px 16px;" onclick="exitStudentSession()">
+              Leave Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast-box" id="toast-box"></div>
+
+<script>
+  let activeSessionId = null;
+  let myStudentId = sessionStorage.getItem('campusmind_st_id') || '';
+  let myStudentName = sessionStorage.getItem('campusmind_st_name') || '';
+  let studentSocket = null;
+  let heartbeatTimer = null;
+
+  function toast(msg, isError = false) {
+    const box = document.getElementById('toast-box');
+    const el = document.createElement('div');
+    el.className = 'toast ' + (isError ? 'error' : 'success');
+    el.innerText = msg;
+    box.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  function formatHMS(totalSec) {
+    if (totalSec < 0) totalSec = 0;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = Math.floor(totalSec % 60);
+    return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+  }
+
+  function setRingProgress(percent) {
+    const circle = document.getElementById('student-ring-circle');
+    const radius = 88;
+    const circumference = 2 * Math.PI * radius; // 552.92
+    const offset = circumference - (percent / 100) * circumference;
+    circle.style.strokeDashoffset = offset;
+    document.getElementById('dash-percent-val').innerText = `${Math.round(percent)}%`;
+
+    if (percent >= 75) {
+      circle.style.stroke = '#10B981'; // Green
+    } else if (percent >= 25) {
+      circle.style.stroke = '#F59E0B'; // Orange
+    } else {
+      circle.style.stroke = '#6C63FF'; // Violet
+    }
+  }
+
+  function showStudentView(view) {
+    document.getElementById('view-student-join').classList.remove('active-student-view');
+    document.getElementById('view-student-dash').classList.remove('active-student-view');
+    
+    if (view === 'dash') {
+      document.getElementById('view-student-dash').classList.add('active-student-view');
+      document.getElementById('student-header-profile').style.display = 'flex';
+    } else {
+      document.getElementById('view-student-join').classList.add('active-student-view');
+      document.getElementById('student-header-profile').style.display = 'none';
+      document.getElementById('join-student-id').value = '';
+      document.getElementById('join-student-name').value = '';
+    }
+  }
+
+  // Poll for Active Session
+  async function pollStudentSession() {
+    try {
+      const res = await fetch('/api/sessions/active');
+      const data = await res.json();
+      if (data.active && data.session) {
+        activeSessionId = data.session.session_id;
+        document.getElementById('found-subject-text').innerText = `: ${data.session.subject}`;
+        document.getElementById('found-faculty-text').innerText = `: ${data.session.faculty_name || data.session.faculty_id}`;
+        document.getElementById('found-duration-text').innerText = `: ${data.session.session_duration_minutes} Minutes`;
+        document.getElementById('found-grace-text').innerText = `: ${data.session.disconnect_grace_seconds} Seconds`;
+
+        document.getElementById('banner-session-found').style.display = 'block';
+        document.getElementById('banner-no-session').style.display = 'none';
+        document.getElementById('btn-join-submit').disabled = false;
+
+        const hasJoinedCurrent = sessionStorage.getItem('joined_session_' + activeSessionId);
+        if (hasJoinedCurrent && myStudentId) {
+          checkMyExistingAttendance();
+        } else {
+          showStudentView('join');
+        }
+      } else {
+        activeSessionId = null;
+        document.getElementById('banner-session-found').style.display = 'none';
+        document.getElementById('banner-no-session').style.display = 'block';
+        document.getElementById('btn-join-submit').disabled = true;
+        showStudentView('join');
+      }
+    } catch(e) {
+      document.getElementById('banner-no-session').style.display = 'block';
+      showStudentView('join');
+    }
+  }
+
+  // Check if student already joined active session
+  async function checkMyExistingAttendance() {
+    try {
+      const res = await fetch(`/api/session/${activeSessionId}/student/${myStudentId}/status`);
+      if (res.ok) {
+        const data = await res.json();
+        renderDashboardData(data);
+        showStudentView('dash');
+        connectStudentWebSocket();
+        startHeartbeatLoop();
+      } else {
+        showStudentView('join');
+      }
+    } catch {
+      showStudentView('join');
+    }
+  }
+
+  // Render Dashboard
+  function renderDashboardData(data) {
+    document.getElementById('dash-subject-title').innerText = data.subject || 'Class Session';
+    document.getElementById('dash-faculty-subtitle').innerText = `Faculty: ${data.faculty_name || data.faculty_id || '--'}`;
+    document.getElementById('hdr-profile-name').innerText = data.display_name || myStudentName || 'Student';
+    document.getElementById('hdr-profile-id').innerText = data.student_id || myStudentId || '';
+    
+    const initials = (data.display_name || 'ST').split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('hdr-avatar-initials').innerText = initials || 'ST';
+
+    document.getElementById('dash-grace-sec').innerText = `${data.disconnect_grace_seconds || 90} Seconds`;
+
+    updateAttendanceTick(data);
+  }
+
+  // Live Tick Update
+  function updateAttendanceTick(data) {
+    const totalSec = (data.session_duration_minutes || 60) * 60;
+    const remaining = data.remaining_seconds !== undefined ? data.remaining_seconds : 0;
+    document.getElementById('dash-remaining-time').innerHTML = `${formatHMS(remaining)} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">/ ${formatHMS(totalSec)}</span>`;
+
+    const attended = data.attended_seconds || 0;
+    document.getElementById('dash-attended-time').innerText = formatHMS(attended);
+
+    const pct = data.attendance_percentage !== undefined ? data.attendance_percentage : 
+      Math.min(100, Math.round((attended / Math.max(totalSec, 1)) * 100));
+    setRingProgress(pct);
+
+    // Status pill & Right card
+    const st = (data.current_status || 'JOINED').toUpperCase();
+    const badge = document.getElementById('dash-student-status-badge');
+    const pill = document.getElementById('dash-connected-pill');
+    const connTitle = document.getElementById('student-conn-title');
+    const connDesc = document.getElementById('student-conn-desc');
+    const connIcon = document.getElementById('student-conn-icon');
+    const card = document.getElementById('student-conn-card');
+
+    if (st === 'JOINED') {
+      badge.className = 'pill-status joined';
+      badge.innerText = '✓ Joined (Attending)';
+      pill.className = 'pill-status active';
+      pill.innerHTML = '<span class="pulse-dot"></span> Connected';
+      connTitle.innerText = 'You are connected';
+      connDesc.innerText = 'Your attendance is being tracked in real time.';
+      connIcon.innerText = '📶';
+      connIcon.style.background = '#E6FAF5';
+      connIcon.style.color = '#10B981';
+      card.style.borderColor = 'var(--border)';
+    } else if (st === 'PAUSED') {
+      badge.className = 'pill-status paused';
+      badge.innerText = '⏸ Paused (Grace Period)';
+      pill.className = 'pill-status paused';
+      pill.innerHTML = '<span class="pulse-dot"></span> Reconnecting...';
+      connTitle.innerText = 'Connection Paused';
+      connDesc.innerText = 'Wi-Fi interrupted. Reconnect before grace expires to continue tracking!';
+      connIcon.innerText = '⚠️';
+      connIcon.style.background = '#FEF3C7';
+      connIcon.style.color = '#D97706';
+      card.style.borderColor = '#F59E0B';
+    } else {
+      badge.className = 'pill-status disconnected';
+      badge.innerText = '✗ Disconnected';
+      pill.className = 'pill-status disconnected';
+      pill.innerHTML = 'Disconnected';
+      connTitle.innerText = 'Disconnected from Wi-Fi';
+      connDesc.innerText = 'Timer stopped. Please re-open Wi-Fi connection.';
+      connIcon.innerText = '📵';
+      connIcon.style.background = '#FEE2E2';
+      connIcon.style.color = '#DC2626';
+      card.style.borderColor = '#EF4444';
+    }
+  }
+
+  // Join Form Submission
+  document.getElementById('student-join-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeSessionId) {
+      toast('No active session available to join', true);
+      return;
+    }
+
+    const student_id = document.getElementById('join-student-id').value.trim().toUpperCase();
+    const display_name = document.getElementById('join-student-name').value.trim();
+
+    const btn = document.getElementById('btn-join-submit');
+    btn.disabled = true;
+    btn.innerText = 'Joining Session...';
+
+    try {
+      const res = await fetch(`/api/session/${activeSessionId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id, display_name })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Could not join session');
+
+      myStudentId = student_id;
+      myStudentName = display_name;
+      sessionStorage.setItem('campusmind_st_id', student_id);
+      sessionStorage.setItem('campusmind_st_name', display_name);
+      sessionStorage.setItem('joined_session_' + activeSessionId, 'true');
+
+      toast('Joined session successfully!');
+      renderDashboardData(data);
+      showStudentView('dash');
+      connectStudentWebSocket();
+      startHeartbeatLoop();
+    } catch(err) {
+      toast(err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = '➔   Join Session';
+    }
+  });
+
+  // Connect Student WebSocket
+  function connectStudentWebSocket() {
+    if (studentSocket) studentSocket.close();
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    studentSocket = new WebSocket(`${proto}//${location.host}/ws/student/${activeSessionId}/${myStudentId}`);
+
+    studentSocket.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'STUDENT_TICK' && msg.data) {
+          updateAttendanceTick(msg.data);
+        }
+      } catch(e) {}
+    };
+
+    studentSocket.onclose = () => {
+      setTimeout(connectStudentWebSocket, 3000);
+    };
+  }
+
+  // Periodic Heartbeat
+  function startHeartbeatLoop() {
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+    heartbeatTimer = setInterval(async () => {
+      if (!activeSessionId || !myStudentId) return;
+      try {
+        await fetch(`/api/session/${activeSessionId}/heartbeat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ student_id: myStudentId })
+        });
+      } catch(e) {}
+    }, 4000); // 4-second heartbeat
+  }
+
+  function exitStudentSession() {
+    if (confirm('Leave this attendance session?')) {
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      if (studentSocket) studentSocket.close();
+      sessionStorage.clear();
+      sessionStorage.removeItem('campusmind_st_id');
+      sessionStorage.removeItem('campusmind_st_name');
+      myStudentId = '';
+      myStudentName = '';
+      showStudentView('join');
+    }
+  }
+
+  async function loadStudentConfig() {
+    try {
+      const res = await fetch('/api/config/public');
+      if (res.ok) {
+        const cfg = await res.json();
+        if (cfg.host_system_name) {
+          const el = document.getElementById('student-app-brand-name');
+          if (el) el.innerText = cfg.host_system_name;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Init
+  (function init() {
+    loadStudentConfig();
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view');
+    if (viewParam === 'join') {
+      showStudentView('join');
+    } else if (viewParam === 'dashboard' && myStudentId) {
+      showStudentView('dash');
+    }
+
+    pollStudentSession();
+    setInterval(pollStudentSession, 12000);
+  })();
+</script>
+</body>
+</html>

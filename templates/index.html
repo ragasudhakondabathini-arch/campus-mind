@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Mind – Smart Attendance System</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+body { background: linear-gradient(135deg,#1E1B4B,#3B2D8F,#6C63FF); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+.landing { text-align:center; color:#fff; padding:40px 20px; }
+.landing h1 { font-size:3rem; font-weight:900; margin-bottom:12px; }
+.landing p { font-size:1.1rem; opacity:.8; margin-bottom:40px; }
+.landing-cards { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+.landing-card {
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+  border-radius:16px; padding:28px 24px; width:200px;
+  color:#fff; text-decoration:none;
+  transition:all .2s ease; backdrop-filter:blur(10px);
+}
+.landing-card:hover { background:rgba(255,255,255,.2); transform:translateY(-4px); }
+.landing-card .lc-icon { font-size:2.5rem; margin-bottom:12px; display:block; }
+.landing-card h3 { font-size:.95rem; font-weight:700; margin-bottom:6px; }
+.landing-card p  { font-size:.75rem; opacity:.7; }
+</style>
+</head>
+<body>
+<div class="landing">
+  <div style="font-size:4rem;margin-bottom:16px">🎓</div>
+  <h1>Campus Mind</h1>
+  <p>Wi-Fi Smart Attendance Management System</p>
+  <div class="landing-cards">
+    <a href="/faculty/create-session" class="landing-card">
+      <span class="lc-icon">➕</span>
+      <h3>Faculty – Create Session</h3>
+      <p>Start a new attendance session</p>
+    </a>
+    <a href="/faculty/live" class="landing-card">
+      <span class="lc-icon">📡</span>
+      <h3>Faculty – Live Session</h3>
+      <p>Monitor attendance in real time</p>
+    </a>
+    <a href="/student/join" class="landing-card">
+      <span class="lc-icon">🚀</span>
+      <h3>Student – Join Session</h3>
+      <p>Check in to your class</p>
+    </a>
+    <a href="/student/dashboard" class="landing-card">
+      <span class="lc-icon">📊</span>
+      <h3>Student – My Attendance</h3>
+      <p>View your attendance stats</p>
+    </a>
+  </div>
+</div>
+</body>
+</html>
+

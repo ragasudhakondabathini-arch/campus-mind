@@ -1,0 +1,25 @@
+﻿.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+venv*/
+.pytest_cache/
+.idea/
+.vscode/
+
+# Database files
+*.db
+*.sqlite3
+*.db-wal
+*.db-shm
+
+# Exports & Generated Reports
+exports/
+**/exports/
+
+# Temporary / Scratch
+scratch/
+query
